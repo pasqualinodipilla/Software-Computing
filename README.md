@@ -7,8 +7,8 @@ These repository contains all the useful information to generate and work with d
 
 The steps to follow in order to obtain the outputs are:
 -First of all open a terminal, 
--go in TwitterVaccineWar_local directory (cd TwitterVaccineWar_local),
--go in ProjectSoftware&Computing directory (cd ProjectSoftware\&Computing/), go in Functions directory (cd Functions/),
+-go in Software-Computing directory (cd Software-Computing),
+-go in Functions directory (cd Functions/),
 -run open_variables.py (python open_variables.py),
 -run functions.py (python functions.py),
 -run DataForVaccineGraph.py (python DataForVaccineGraph.py),
