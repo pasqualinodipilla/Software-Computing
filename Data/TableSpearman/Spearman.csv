@@ -1,0 +1,5 @@
+SpearmanName,SpearmanValue
+in-degree strong,"SpearmanrResult(correlation=0.5567531341756371, pvalue=1.078879867332308e-160)"
+out-degree strong,"SpearmanrResult(correlation=0.5328911016452674, pvalue=7.094107931267652e-145)"
+in-degree weak,"SpearmanrResult(correlation=0.2772152304607777, pvalue=0.0)"
+out-degree weak,"SpearmanrResult(correlation=0.6067021421435261, pvalue=0.0)"
