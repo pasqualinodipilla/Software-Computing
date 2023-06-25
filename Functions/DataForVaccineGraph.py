@@ -2,13 +2,8 @@ import pandas as pd
 import networkx as nx
 import pickle
 from collections import Counter 
-from functions import assign_communities
-from functions import mixing_matrix
-from functions import randomize_network
-from functions import compute_randomized_modularity
-from functions import compute_connected_component
-from functions import compute_weak_connected_component
-from functions import gini
+from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
+from functions import compute_connected_component, compute_weak_connected_component, gini
 
 STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/' #Paths used
 EDGELIST='vaccines/data/edgelist_w1.txt'

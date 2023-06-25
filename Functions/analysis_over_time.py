@@ -6,17 +6,17 @@ import datetime
 import os
 from collections import Counter 
 import copy
-from functions import assign_communities
-from functions import mixing_matrix
-from functions import randomize_network
-from functions import compute_randomized_modularity
-from functions import compute_connected_component
-from functions import compute_weak_connected_component
-from functions import gini
+from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
+from functions import compute_connected_component, compute_weak_connected_component, gini
 
 '''
 Network analysis over time.
-Here we want to analyze the main properties of our network day by day from 01-02-2022 to 11-03-2022; in particular we compare day by day the modularity of our real network with the modularity of a random network obtained with a shuffling of the edges (configuration model), in order to demonstrate that our network is actually clustered. Then we evaluate the assortativity coefficient, that is often used as a correlation measure between nodes, the Gini index, that is a measure of statistical dispersion used to represent the inequality within a social group, and we identify the first two strongly and weakly connected components in order to find out if the giant component is made up of users belonging to a single community or not.
+Here we want to analyze the main properties of our network day by day from 01-02-2022 to 11-03-2022; in particular we compare day
+by day the modularity of our real network with the modularity of a random network obtained with a shuffling of the edges
+(configuration model), in order to demonstrate that our network is actually clustered. Then we evaluate the assortativity
+coefficient, that is often used as a correlation measure between nodes, the Gini index, that is a measure of statistical
+dispersion used to represent the inequality within a social group, and we identify the first two strongly and weakly connected
+components in order to find out if the giant component is made up of users belonging to a single community or not.
 '''
 STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/' #Paths used
 PATH_COM_OF_USER = 'vaccines/data/v_com_of_user_w1_2020-10-07_2022-03-10.pkl'

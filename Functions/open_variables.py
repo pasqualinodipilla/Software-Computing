@@ -56,7 +56,3 @@ def main():
     df_edgelist=df_edgelist[df_edgelist.weight>=min_rt]
     #print('\nEdgelist weight{}: '.format(min_rt),df_edgelist.shape)
     df_edgelist.to_csv('data/edgelist_w{}.txt'.format(min_rt), header=None, index=None, sep='\t')
-    user_set=set(df_edgelist['user.id']).union(set(df_edgelist['retweeted_status.user.id']))
-    Gukr=nx.read_weighted_edgelist('data/edgelist_w{}.txt'.format(min_rt),
-                                   delimiter='\t',create_using=nx.DiGraph,nodetype=str)
-    #print('\n',nx.info(Gukr))

@@ -34,7 +34,7 @@ def assign_communities(G, com_of_user):
     nx.set_node_attributes(G, com_of_user, "community")
     
     #We define group_A if the user belongs to community A, group_B  if  the user belongs to community B
-    #and group_null if the users doesn't belong to one of the two groups.
+    #and group_null if the users don't belong to one of the two groups.
     group_A = set()
     group_B = set()
     group_null = set()
@@ -264,27 +264,24 @@ def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
     group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
     return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
 
-def gini(x, w=None):
-    '''
-    Function that returns the Gini index.
-    :param x: array or list on which I want to calculate the Gini index.
-    :param w: array or list representig the weight of values.
-    :return (n + 1 - 2 * np.sum(cumx) / cumx[-1]) / n: float value representing the Gini index.
-    '''
-    x = np.asarray(x)
-    if w is not None:
-        w = np.asarray(w)
-        sorted_indices = np.argsort(x)
-        sorted_x = x[sorted_indices]
-        sorted_w = w[sorted_indices]
-        #Force float dtype to avoid overflows
-        cumw = np.cumsum(sorted_w, dtype=float)
-        cumxw = np.cumsum(sorted_x * sorted_w, dtype=float)
-        return (np.sum(cumxw[1:] * cumw[:-1] - cumxw[:-1] * cumw[1:]) / 
-                (cumxw[-1] * cumw[-1]))
-    else:
-        sorted_x = np.sort(x)
-        n = len(x)
-        cumx = np.cumsum(sorted_x, dtype=float)
-        return (n + 1 - 2 * np.sum(cumx) / cumx[-1]) / n
-    
+def gini(x): 
+    """Calculate the Gini coefficient of a numpy array."""
+    # based on bottom eq:
+    # http://www.statsdirect.com/help/generatedimages/equations/equation154.svg
+    # from:
+    # http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
+    # All values are treated equally, arrays must be 1d:
+    x = x.flatten()
+    if np.amin(x) < 0:
+        # Values cannot be negative:
+        x -= np.amin(x)
+    # Values cannot be 0:
+    x = x + 0.0000001
+    # Values must be sorted:
+    x = np.sort(x)
+    # Index per array element:
+    index = np.arange(1,x.shape[0]+1)
+    # Number of array elements:
+    n = x.shape[0]
+    # Gini coefficient:
+    return ((np.sum((2 * index - n  - 1) * x)) / (n * np.sum(x)))

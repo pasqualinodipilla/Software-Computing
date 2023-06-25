@@ -7,21 +7,18 @@ import os
 from collections import Counter 
 import copy
 import random
-from functions import assign_communities
-from functions import mixing_matrix
-from functions import randomize_network
-from functions import compute_randomized_modularity
-from functions import compute_connected_component
-from functions import compute_weak_connected_component
-from functions import gini
+from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
+from functions import compute_connected_component, compute_weak_connected_component, gini
 
-class cache:  #we use caching for storing the most frequently accessed data in the temporary cache                   #location so that the data can be accessed quickly
+class cache:  #we use caching for storing the most frequently accessed data in the temporary cache                   
+              #location so that the data can be accessed quickly
     pass
 
 def test_assign_communities(ReadFileG, ReadFileComOfUser):
     '''
     This function is testing if the output of assign_communities() function are of the correct type:
-    group_A and group_B must be lists, Gvac_subgraph, Gvac_A and Gvac_B must be direct graphs. Then       it tests that the set list of nodes belonging to Gvac_A (i.e. the subgraph containing the nodes
+    group_A and group_B must be lists, Gvac_subgraph, Gvac_A and Gvac_B must be direct graphs. Then       
+    it tests that the set list of nodes belonging to Gvac_A (i.e. the subgraph containing the nodes
     belonging to group A) actually corresponds to group_A and that the set list of nodes belonging to
     Gvac_B (i.e. the subgraph containing the nodes belonging to group B) actually corresponds to 
     group_B. At the end it tests that the set list of nodes belonging to Gvac_subgraph is given by
