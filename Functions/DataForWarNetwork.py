@@ -153,10 +153,10 @@ def main():
                                                                                        group_A,
                                                                                        group_B)
     (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak, G0_weak, G1_weak) = compute_weak_connected_component(Gvac_subgraph,group_A,group_B)
-    Gvac_subgraph.to_undirected()
+    #Gvac_subgraph.to_undirected()
     G0_weak_undirected = Gvac_subgraph.to_undirected()
     betweenness = nx.betweenness_centrality(G0, k=500)
-    betweenness_weak = nx.betweenness_centrality(G0_weak_undirected, k=60)
+    betweenness_weak = nx.betweenness_centrality(Gvac_subgraph, k=60)
     in_degree_G0 = [G0.in_degree(node) for node in nx.nodes(G0)]
     out_degree_G0 = [G0.out_degree(node) for node in nx.nodes(G0)]
     in_degree_G0_weak = [Gvac_subgraph.in_degree(node) for node in nx.nodes(Gvac_subgraph)]

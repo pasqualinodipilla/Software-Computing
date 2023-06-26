@@ -1,5 +1,5 @@
 SpearmanName,SpearmanValue
-in-degree strong,"SpearmanrResult(correlation=0.56488212082494, pvalue=2.2138689545847167e-166)"
-out-degree strong,"SpearmanrResult(correlation=0.5310541152167799, pvalue=1.0391672063771059e-143)"
-in-degree weak,"SpearmanrResult(correlation=0.26710077414413835, pvalue=2.851341017641502e-305)"
-out-degree weak,"SpearmanrResult(correlation=0.6100437244236736, pvalue=0.0)"
+in-degree strong,"SpearmanrResult(correlation=0.5534008421587177, pvalue=2.1530643202724064e-158)"
+out-degree strong,"SpearmanrResult(correlation=0.542450728932313, pvalue=4.640359247392902e-151)"
+in-degree weak,"SpearmanrResult(correlation=0.34710405842860204, pvalue=0.0)"
+out-degree weak,"SpearmanrResult(correlation=0.48883612111431496, pvalue=0.0)"
