@@ -267,6 +267,24 @@ def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
     group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
     return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
 
+
+def compute_strong_or_weak_components(Gvac_subgraph, group_A, group_B, isweak):
+    nodes_group_A_G0 = []
+    nodes_group_B_G0 = []
+    nodes_group_A_G1 = []
+    nodes_group_B_G1 = []
+    if isweak:
+        x = compute_weak_connected_component(Gvac_subgraph, group_A, group_B)
+    else:
+        x = compute_connected_component(Gvac_subgraph, group_A, group_B)
+    
+    nodes_group_A_G0.append(len(x[0]))
+    nodes_group_B_G0.append(len(x[1]))
+    nodes_group_A_G1.append(len(x[2]))
+    nodes_group_B_G1.append(len(x[3]))
+    return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1
+    
+    
 def gini(x): 
     """Calculate the Gini coefficient of a numpy array."""
     # based on bottom eq:

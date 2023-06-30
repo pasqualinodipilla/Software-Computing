@@ -62,18 +62,6 @@ def main():
     #taken from the vaccine network.
     nodes_group_A = []
     nodes_group_B = []
-    #Here we save the nodes of the first two connected components 
-    #(strongly of weakly) belonging to group A
-    #or group B.
-    nodes_group_A_G0 = []
-    nodes_group_B_G0 = []
-    nodes_group_A_G1 = []
-    nodes_group_B_G1 = []
-    nodes_group_B_G1_weak = []
-    nodes_group_A_G0_weak = []
-    nodes_group_B_G0_weak = []
-    nodes_group_A_G1_weak = []
-    nodes_group_B_G1_weak = []
     #The following lists will be lists of dictionaries in order to evaluate the
     #average age of activity.
     nodes_age_in = []
@@ -188,16 +176,14 @@ def main():
         #4 lists in order
         #to get the number of nodes of group A or group B that belong to the first and second 
         #(strongly or weakly) connected connected components.
-        x = compute_connected_component(Gvac_subgraph, group_A, group_B)
-        nodes_group_A_G0.append(len(x[0]))
-        nodes_group_B_G0.append(len(x[1]))
-        nodes_group_A_G1.append(len(x[2]))
-        nodes_group_B_G1.append(len(x[3]))
-        x = compute_weak_connected_component(Gvac_subgraph, group_A, group_B)
-        nodes_group_A_G0_weak.append(len(x[0]))
-        nodes_group_B_G0_weak.append(len(x[1]))
-        nodes_group_A_G1_weak.append(len(x[2]))
-        nodes_group_B_G1_weak.append(len(x[3]))
+        
+        isweak = False
+        nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1 = compute_strong_or_weak_components(Gvac_subgraph,
+                                                                                                                   group_A,
+                                                                                                                   group_B, 
+                                                                                                                   isweak)
+        isweak = True
+        nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
     
     '''
     We create a set of dataframes and we save them in order to perform the plots 
