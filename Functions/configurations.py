@@ -9,3 +9,4 @@ PATH_AGE = '../Data/Age/'
 PATH_MODULARITY = '../Data/Modularity/'
 PATH_FREQUENCY = '../Data/Frequency/'
 PATH_WAR = '../Data/WarTweets.pkl.gz'
+SEED = 123

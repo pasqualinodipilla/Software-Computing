@@ -9,6 +9,7 @@ import copy
 import random
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini
+from configurations import SEED
 
 class cache:  #we use caching for storing the most frequently accessed data in the temporary cache                   
               #location so that the data can be accessed quickly
@@ -80,7 +81,7 @@ def test_randomize_network():
     '''
     
     N = 1000
-    modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(N, cache.Gvac_subgraph, cache.group_A, cache.group_B)
+    modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(SEED,N, cache.Gvac_subgraph, cache.group_A, cache.group_B)
     edge_weight1 = nx.get_edge_attributes(cache.Gvac_subgraph,'weight')
     edge_weight1 = [edge_weight1[(node1, node2)] for (node1, node2) in edge_weight1]
     edge_weight2 = nx.get_edge_attributes(Gvac_shuffle,'weight')

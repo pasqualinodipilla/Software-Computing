@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 import datetime
 import string
 from sklearn.metrics import roc_auc_score
+from configurations import SEED
 
 def assign_communities(G, com_of_user):
     '''
@@ -110,7 +111,7 @@ def mixing_matrix(G, com_of_user):
     df_weight.index = ['A','B']
     return df, df_weight
 
-def randomize_network(n_swaps, Gvac, group_A, group_B):
+def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
     '''
     This function creates a random network and compute the modularity in the 
     unweighted and weighted case, taking in input the number of swaps, 
@@ -136,6 +137,8 @@ def randomize_network(n_swaps, Gvac, group_A, group_B):
 
     #Let's create an array of indexes in which each index corresponds to an element of list_edges
     array_index = np.arange(len(list_edges))
+    #specify random seed
+    np.random.seed(seed)
     while(i<n_swaps):
         #We choose two indexes randomly
         edges_to_swap = np.random.choice(array_index,2)
@@ -185,7 +188,7 @@ def compute_randomized_modularity(Gvac_subgraph, group_A, group_B):
     #We repeat the randomization a certain number of times, in this case 10.
     for i in range(10):
         start_time = datetime.datetime.now()
-        modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(N,Gvac_subgraph,
+        modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(SEED,N,Gvac_subgraph,
                                                                        group_A, group_B)
         list_modularity_unweighted.append(modularity_unweighted)
         list_modularity_weighted.append(modularity_weighted)
