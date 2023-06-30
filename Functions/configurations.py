@@ -1,0 +1,11 @@
+STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/' #Paths used
+PATH_COM_OF_USER = 'vaccines/data/v_com_of_user_w1_2020-10-07_2022-03-10.pkl'
+PATH_S_COMPONENTS = '../Data/StronglyConnectedComponents/'
+PATH_W_COMPONENTS = '../Data/WeaklyConnectedComponents/'
+PATH_ASSORT = '../Data/Assortativity/'
+PATH_GINI = '../Data/Gini_Index/'
+PATH_N_NODES = '../Data/NumberOfNodesAB/'
+PATH_AGE = '../Data/Age/'
+PATH_MODULARITY = '../Data/Modularity/'
+PATH_FREQUENCY = '../Data/Frequency/'
+PATH_WAR = '../Data/WarTweets.pkl.gz'

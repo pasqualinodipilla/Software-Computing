@@ -8,6 +8,19 @@ from collections import Counter
 import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini
+from configurations import (
+    STOR_DIR,
+    PATH_COM_OF_USER,
+    PATH_S_COMPONENTS,
+    PATH_W_COMPONENTS,
+    PATH_ASSORT,
+    PATH_GINI,
+    PATH_N_NODES,
+    PATH_AGE,
+    PATH_MODULARITY,
+    PATH_FREQUENCY,
+    PATH_WAR
+)
 
 '''
 Network analysis over time.
@@ -18,18 +31,6 @@ coefficient, that is often used as a correlation measure between nodes, the Gini
 dispersion used to represent the inequality within a social group, and we identify the first two strongly and weakly connected
 components in order to find out if the giant component is made up of users belonging to a single community or not.
 '''
-STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/' #Paths used
-PATH_COM_OF_USER = 'vaccines/data/v_com_of_user_w1_2020-10-07_2022-03-10.pkl'
-PATH_S_COMPONENTS = '../Data/StronglyConnectedComponents/'
-PATH_W_COMPONENTS = '../Data/WeaklyConnectedComponents/'
-PATH_ASSORT = '../Data/Assortativity/'
-PATH_GINI = '../Data/Gini_Index/'
-PATH_N_NODES = '../Data/NumberOfNodesAB/'
-PATH_AGE = '../Data/Age/'
-PATH_MODULARITY = '../Data/Modularity/'
-PATH_FREQUENCY = '../Data/Frequency/'
-PATH_WAR = '../Data/WarTweets.pkl.gz'
-
 
 def main():
     '''
