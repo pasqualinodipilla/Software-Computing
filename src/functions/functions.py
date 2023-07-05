@@ -306,3 +306,11 @@ def gini(x):
     n = x.shape[0]
     # Gini coefficient:
     return ((np.sum((2 * index - n  - 1) * x)) / (n * np.sum(x)))
+
+def save_df_to_csv(date_store, nodes_group_B_G0, nodes_group_A_G0,  nodes_group_B_G1, nodes_group_A_G1, file_name):
+    df_components = pd.DataFrame({'date_store': date_store, 
+                                  'nodes_group_B_G0': nodes_group_B_G0,
+                                  'nodes_group_A_G0': nodes_group_A_G0,
+                                  'nodes_group_B_G1': nodes_group_B_G1, 
+                                  'nodes_group_A_G1': nodes_group_A_G1})
+    df_components.to_csv(file_name, index=False)
