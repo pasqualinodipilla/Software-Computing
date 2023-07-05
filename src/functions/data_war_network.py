@@ -10,18 +10,18 @@ import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini
-
-STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/' #Paths used
-PATH_EDGELIST='./data/edgelist_w1.txt'
-PATH_COM_OF_USER = 'vaccines/data/v_com_of_user_w1_2020-10-07_2022-03-10.pkl'
-PATH_MIXING_MATRIX='../Data/MixingMatrixTables/'
-PATH_DEGREE_WAR = "../Data/DegreeDistributionsWar/"
-DATA_SPEARMAN = '../Data/TableSpearman/'
-DATA_BETWEENESS = '../Data/Betweeness/'
-DATA_CLUSTERING = '../Data/ClusteringDistribution/'
-PATH_WAR = '../Data/WarTweets.pkl.gz'
-DATA_FREQUENCY = '../Data/Frequency/'
-
+from configurations import (
+    STOR_DIR,
+    PATH_EDGELIST,
+    PATH_MIXING_MATRIX,
+    PATH_COM_OF_USER,
+    PATH_DEGREE_WAR,
+    DATA_SPEARMAN,
+    DATA_BETWEENESS,
+    DATA_CLUSTERING,
+    PATH_WAR,
+    DATA_FREQUENCY
+)
 
 def main():
     Gvac=nx.read_weighted_edgelist(PATH_EDGELIST,

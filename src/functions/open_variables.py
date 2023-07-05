@@ -1,11 +1,13 @@
 import pandas as pd
 import networkx as nx
 import pickle
+from configurations import (
+    STOR_DIR,
+    PATH_VACCINE,
+    PATH_COM_OF_USER,
+    PATH_UKRAINE
+)
 
-STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/'
-PATH_VACCINE = 'vaccines/data/edgelist_w1.txt'
-PATH_COM_OF_USER = 'vaccines/data/v_com_of_user_w1_2020-10-07_2022-03-10.pkl'
-PATH_UKRAINE = 'ukraine/df_restored_timelines.pickle'
 
 def main():
     '''

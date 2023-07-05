@@ -4,12 +4,13 @@ import pickle
 from collections import Counter 
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini
-
-STOR_DIR='/mnt/stor/users/francesco.durazzi2/twitter/' #Paths used
-EDGELIST='vaccines/data/edgelist_w1.txt'
-PATH_MIXING_MATRIX='../Data/MixingMatrixTables/'
-PATH_VACCINE_COM_OF_USER = 'vaccines/data/v_com_of_user_w1_2020-10-07_2022-03-10.pkl'
-PATH_DEGREE = '../Data/DegreeDistributionsVaccine/'
+from configurations import (
+    STOR_DIR,
+    EDGELIST,
+    PATH_MIXING_MATRIX,
+    PATH_VACCINE_COM_OF_USER,
+    PATH_DEGREE
+)
 
 
 def main():  
