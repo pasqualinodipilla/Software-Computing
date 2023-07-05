@@ -20,6 +20,7 @@ from configurations import (
     PATH_MODULARITY,
     PATH_FREQUENCY,
     PATH_WAR
+    DIR_FILES
 )
 
 '''
@@ -44,9 +45,9 @@ def main():
         com_of_user=pickle.load(f)
     
     #let's save the directory in a variable (dir_files).
-    dir_files='./data/days/'
+    #dir_files='./data/days/'
     #let's select all the .txt files.
-    listfiles=[file for file in os.listdir(dir_files) if file [-3:] == 'txt']
+    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt']
     #let's create lists in which we save the information we need
     mod_unweighted_file = []
     mod_weighted_file = []
@@ -81,7 +82,7 @@ def main():
     
         #print("Date =", date_store[-1])
         #The first step is to read the edgelist.
-        Gvac=nx.read_weighted_edgelist(dir_files+file,
+        Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
                                            delimiter='\t',create_using=nx.DiGraph,nodetype=str)
         #print(nx.info(Gvac))
         nodes_original.append(len(Gvac.nodes()))
