@@ -294,14 +294,11 @@ def main():
     df_users['total-degree']=df_users['in-degree']+df_users['out-degree']
     
     '''
-    We define the top users of group A on the basis of the total-degree (we are taking the 1%).
+    We define the top users of group A and group B on the basis of the total-degree (we are taking the 1%).
     '''
     df_topA = filter_top_users(df_users, 'A')
     df_topA.to_csv(PATH_FREQUENCY+'topUsersGroupA.csv', index=False)
     
-    '''
-    We define the top users of group B on the basis of the total-degree (we are taking the 1%).
-    '''
     df_topB = filter_top_users(df_users, 'B')
     df_topB.to_csv(PATH_FREQUENCY+'topUsersGroupB.csv', index=False)
     
@@ -311,8 +308,8 @@ def main():
     df_tweets_A = n_tweets_over_time(df, df_top_A, 'NtweetsGroupA')
     df_tweets_B = n_tweets_over_time(df, df_top_B, 'NtweetsGroupB')
     
-    df4 = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
-    df4.columns = ['Ntweets']
+    df_tweets = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
+    df_tweets.columns = ['Ntweets']
     
     '''
     In order to join together the three dataframes we use an outer join: in the left join 
@@ -320,23 +317,21 @@ def main():
     only the indexes of the dataframe on the 'left part'. With the outer join we take 
     into account the indexes of all the dataframes considered.
     '''
-    df5 = df2.join(df3,how='outer').join(df4,how='outer').fillna(0) #Fill NA/NaN values with 0
+    df_final = df_tweets_B.join(df_tweets_A,how='outer').join(df_tweets,how='outer').fillna(0) #Fill NA/NaN values with 0
     
     '''
     We are interested in the fraction of retweets with respect to the total number of retweets
     (or the percentage if we multiply by 100). Thus we create other 2 columns: the fraction 
     of retweets in the case of group A and in the case of group B
     '''
-    df5['fractionTweetsGroupB'] = df5['NtweetsGroupB']/df5['Ntweets']
-    df5['fractionTweetsGroupA'] = df5['NtweetsGroupA']/df5['Ntweets']
+    df_final['fractionTweetsGroupB'] = df_final['NtweetsGroupB']/df_final['Ntweets']
+    df_final['fractionTweetsGroupA'] = df_final['NtweetsGroupA']/df_final['Ntweets']
     
     '''
     We save these data in order to plot of the behaviour over time of the fraction of 
     retweets in group A and group B with respect to the total number of retweets.
     '''
-    df5.to_csv(PATH_FREQUENCY+'Fraction.csv', index=False)
-    
-    
+    df_final.to_csv(PATH_FREQUENCY+'Fraction.csv', index=False)   
 main()
     
     

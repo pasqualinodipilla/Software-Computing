@@ -6,9 +6,9 @@ from functions import assign_communities, mixing_matrix, randomize_network, comp
 from functions import compute_connected_component, compute_weak_connected_component, gini
 from configurations import (
     STOR_DIR,
-    EDGELIST,
+    PATH_VACCINE,
     PATH_MIXING_MATRIX,
-    PATH_VACCINE_COM_OF_USER,
+    PATH_COM_OF_USER,
     PATH_DEGREE
 )
 
@@ -22,13 +22,13 @@ def main():
     means that user x retweeted user y a number of times equal to the weight. 
     So the in-degree of a user is the total number of retweets it received in the time span.
     '''
-    Gvac=nx.read_weighted_edgelist(STOR_DIR+EDGELIST,
+    Gvac=nx.read_weighted_edgelist(STOR_DIR+PATH_VACCINE,
                                        delimiter='\t',
                                        create_using=nx.DiGraph,
                                        nodetype=str)
     #print(nx.info(Gvac))
     
-    with open(STOR_DIR+PATH_VACCINE_COM_OF_USER,'rb') as f:
+    with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f:
         com_of_user=pickle.load(f)
         
     Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)

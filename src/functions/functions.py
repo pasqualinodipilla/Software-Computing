@@ -347,7 +347,22 @@ def read_cleaned_war_data(PATH_WAR):
     return df
     
 def n_tweets_over_time(df, df_top, label_community)
+ '''
+    Let's create a dataframe in which we have group A over time: we use a 'left join' 
+    where the reference is the user we are interested in and on the other side we have
+    the time during which he's active.
+    '''
     dGroup_time = df_top.set_index('user').join(df.set_index('user'))
+    '''
+    Our goal is to establish it there is a change in percentage with respect to the total 
+    number of retweets.
+    '''
+    
+    '''
+    Here we create other 3 dataframes in which I have the total number of tweets,
+    the number of tweets in group A and in group B and I rename the number of the column
+    to make it more explanatory.
+    '''
     df_tweets = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
     df_tweets.columns = [label_community]
     return df_tweets
