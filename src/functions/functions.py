@@ -292,7 +292,7 @@ def gini(x):
     # from:
     # http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
     # All values are treated equally, arrays must be 1d:
-    x = x.flatten()
+    #x = x.flatten()
     if np.amin(x) < 0:
         # Values cannot be negative:
         x -= np.amin(x)
@@ -346,8 +346,8 @@ def read_cleaned_war_data(PATH_WAR):
     df=df.rename(columns={'user.id': 'user'})
     return df
     
-def n_tweets_over_time(df, df_top, label_community)
- '''
+def n_tweets_over_time(df, df_top, label_community):
+    '''
     Let's create a dataframe in which we have group A over time: we use a 'left join' 
     where the reference is the user we are interested in and on the other side we have
     the time during which he's active.

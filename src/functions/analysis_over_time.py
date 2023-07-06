@@ -19,7 +19,7 @@ from configurations import (
     PATH_AGE,
     PATH_MODULARITY,
     PATH_FREQUENCY,
-    PATH_WAR
+    PATH_WAR,
     DIR_FILES
 )
 
@@ -35,19 +35,14 @@ components in order to find out if the giant component is made up of users belon
 
 def main():
     '''
-    We read the data of the "war network" by considering the same communities 
-    of the "vaccine network" 
-    in order to find out if the two networks share the same clusterization or not,
-    or in other terms, to understand if the users belonging to a certain community 
-    share a similar opinion about the two topics or not.
+    We read the data of the "war network" by considering the same communities of the "vaccine network" in order to find out if
+    the two networks share the same clusterization or not, or in other terms, to understand if the users belonging to a certain
+    community share a similar opinion about the two topics or not.
     '''
     with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f:
         com_of_user=pickle.load(f)
     
-    #let's save the directory in a variable (dir_files).
-    #dir_files='./data/days/'
-    #let's select all the .txt files.
-    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt']
+    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
     #let's create lists in which we save the information we need
     mod_unweighted_file = []
     mod_weighted_file = []
@@ -71,7 +66,6 @@ def main():
     date_store = []
     #We order listfiles with np.sort, i.e. the days one after the other.
     for file in np.sort(listfiles):
-        #print(file)
         
         if file[17:19]+'-'+file[20:22] =='02-01':
             date_store.append(file[18:19]+'-'+file[20:22])
@@ -80,11 +74,9 @@ def main():
         else:
             date_store.append(file[20:22])
     
-        #print("Date =", date_store[-1])
         #The first step is to read the edgelist.
         Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
                                            delimiter='\t',create_using=nx.DiGraph,nodetype=str)
-        #print(nx.info(Gvac))
         nodes_original.append(len(Gvac.nodes()))
     
         #Here we save all the users who receive retweets and the users who retweets, respectively.
@@ -132,11 +124,8 @@ def main():
     
         #We evaluate assortativity coefficient and Gini index for each day.
         assortativity=nx.degree_assortativity_coefficient(Gvac)
-        #print("Assortativity coefficient =", assortativity)
         Gini_in = gini(in_degree_original)
         Gini_out = gini(out_degree_original)
-        #print("Gini index in-degree =", Gini_in)
-        #print("Gini index out-degree =", Gini_out)
     
         assortativity_values.append(assortativity)
         Gini_in_values.append(Gini_in)
@@ -153,31 +142,16 @@ def main():
                                                                                           group_B)
         mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
         mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
-        #print("Modularity real network, Modularity randomized network, Standard deviation
-        #(Unweighted case)")
-        #print(mod_unweighted,np.mean(list_modularity_unweighted),np.std(list_modularity_unweighted))
-        #print("Modularity real network, Modularity randomized network, Standard deviation
-        #(Weighted case)")
-        #print(mod_weighted,np.mean(list_modularity_weighted),np.std(list_modularity_weighted))
         mod_unweighted_file.append(mod_unweighted)
         mod_weighted_file.append(mod_weighted)
         random_mod_unweighted_file.append(list_modularity_unweighted)
         random_mod_weighted_file.append(list_modularity_weighted)
-        #print(" ")
     
-        #I want to plot the fraction of nodes of the first two (strongly and weakly) 
-        #connected components
-        #belonging to community A or B, thus I create a temporary variable x that represents 
-        #a list whose elements
-        #correspond to the output of the function at issue. Therefore x[0] will contain 
-        #the users of group A 
-        #belonging to the first strongly connected component, x[1] the users of group B 
-        #belonging to the first
-        #strongly connected component and so on. Then we save len(x[]) in one of the proper
-        #4 lists in order
-        #to get the number of nodes of group A or group B that belong to the first and second 
-        #(strongly or weakly) connected connected components.
         
+        '''
+        We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
+        to compute first two weakly connected components including nodes belonging to group A or to group B.
+        '''
         isweak = False
         nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1 = compute_strong_or_weak_components(Gvac_subgraph,
                                                                                                                    group_A,
@@ -187,90 +161,59 @@ def main():
         nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
     
     '''
-    We create a set of dataframes and we save them in order to perform the plots 
-    in Plot_Graph.ipynb.
-    '''
-
-    '''
-    In this dataframe we store the dates (date_store), the nodes of group A belonging to the first
-    strongly connected component (nodes_group_A_G0), the nodes of group B belonging to the first
-    strongly connected component (nodes_group_B_G0), the nodes of group A belonging to the second
-    strongly connected component (nodes_group_A_G1), the nodes of group B belonging to the second
-    strongly connected component (nodes_group_B_G1).
+    We create a set of dataframes and we save them in order to perform the plots in Plot_Graph.ipynb.
+    
+    In the following 2 dataframes we store firstly for the strong components and then for the weak components the dates 
+    (date_store), the nodes of group A belonging to the first connected component, the nodes of group B belonging to the
+    first connected component, the nodes of group A belonging to the second connected component, the nodes of group B belonging
+    to the second strongly connected component.
     '''
     df_components = create_df(['date_store', 'nodes_group_B_G0', 'nodes_group_A_G0', 'nodes_group_B_G1', 'nodes_group_A_G1'],
                              [date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
     df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
     
-    '''
-    In this dataframe we store the dates (date_store), the nodes of group A belonging to the first
-    weakly connected component (nodes_group_A_G0_weak), the nodes of group B belonging to the first
-    weakly connected component (nodes_group_B_G0_weak), the nodes of group A belonging to 
-    the second weakly connected component (nodes_group_A_G1_weak), the nodes of group B 
-    belonging to the second weakly connected component (nodes_group_B_G1_weak).
-    '''
-    df_components_weak = create_df_G0_G1(date_store,
-                                         nodes_group_B_G0_weak,
-                                         nodes_group_A_G0_weak,
-                                         nodes_group_B_G1_weak,
-                                         nodes_group_A_G1)
+    df_components_weak = create_df(['date_store','nodes_group_B_G0_weak','nodes_group_A_G0_weak','nodes_group_B_G1_weak',
+                                    'nodes_group_A_G1_weak'],[date_store, nodes_group_B_G0_weak, nodes_group_A_G0_weak,
+                              nodes_group_B_G1_weak, nodes_group_A_G1_weak])
     df_components_weak.to_csv(PATH_W_COMPONENTS+'Figure9.csv', index=False)
     
     '''
-    In this dataframe we store the dates (date_store) and the assortativity values.
+    In the following 4 dataframes we store respectively 
+    - the dates (date_store) and the assortativity values,
+    - the dates (date_store) and the Gini index values for in- and out- distributions,
+    - the dates (date_store), the nodes belonging to a single community of the war network, where the communities are taken from
+    the vaccine network (nodes_group_A, nodes_group_B) and all the nodes belonging to our war network (nodes_original),
+    - the dates (date_store), the modularity of the real network and the modularity of the radomized one.
     '''
-    df_assortativity = pd.DataFrame({'date_store': date_store,
-                                     'assortativity_values': assortativity_values})
+    df_assortativity = create_df(['date_store', 'assortativity_values'],[date_store, assortativity_values])
     df_assortativity.to_csv(PATH_ASSORT+'Figure10.csv', index=False)
     
-    '''
-    In this dataframe we store the dates (date_store), the Gini index values for in- and 
-    out- distributions.
-    '''
-    df_gini = pd.DataFrame({'date_store': date_store,
-                            'Gini_in_values': Gini_in_values,
-                            'Gini_out_values': Gini_out_values})
+    df_gini = create_df(['date_store', 'Gini_in_values', 'Gini_out_values'], [date_store, Gini_in_values, Gini_out_values])
     df_gini.to_csv(PATH_GINI+'Figure11.csv', index=False)
     
-    '''
-    In this dataframe we store the dates (date_store), the nodes belonging to a single community 
-    of the war network, where the communities are taken from the vaccine network 
-    (nodes_group_A, nodes_group_B) and all the nodes belonging to our war network (nodes_original).
-    '''
-    df_n_of_nodes = pd.DataFrame({'date_store': date_store,
-                                  'nodes_group_A':nodes_group_A, 
-                                  'nodes_group_B': nodes_group_B,
-                                  'nodes_original': nodes_original})
+    df_n_of_nodes = create_df(['date_store', 'nodes_group_A', 'nodes_group_B', 'nodes_original'], [date_store, nodes_group_A,
+                                                                                                  nodes_group_B, nodes_original])
     df_n_of_nodes.to_csv(PATH_N_NODES+'Figure12.csv', index=False)
     
-    '''
-    In this dataframe we store the dates (date_store), the modularity of the real network and the 
-    modularity of the radomized one.
-    '''
-    df_modularity = pd.DataFrame({'date_store': date_store,
-                                  'mod_weighted_file': mod_weighted_file,
-                                  'random_mod_weighted_file': random_mod_weighted_file})
+    df_modularity = create_df(['date_store', 'mod_weighted_file', 'random_mod_weighted_file'],[date_store, mod_weighted_file,
+                                                                                              random_mod_weighted_file])
     df_modularity.to_csv(PATH_MODULARITY+'Figure13.csv', index=False)
     
     '''
-    In this dataframe we store the dates (date_store) and the age of the users in the case 
-    of the in and out distributions. The age is defined in the following way: age 0 is referred 
-    to the 1st day (all users have age 0). During the second day there will be users that 
-    have age 1, since a day passed, and new users that will have age 0, and so on. So, after 
-    the second day there will be some users of the first day that are active or not, there will
-    be some new users and there will be some users that had not been active at all.
+    In this dataframe we store the dates (date_store) and the age of the users in the case of the in- and out- distributions.
+    The age is defined in the following way: age 0 is referred to the 1st day (all users have age 0). During the second day there 
+    will be users that have age 1, since a day passed, and new users that will have age 0, and so on. So, after the second day
+    there will be some users of the first day that are active or not, there will be some new users and there will be some users
+    that had not been active at all.
     '''
     
-    df_age = pd.DataFrame({'date_store': date_store,
-                           'nodes_age_in': nodes_age_in,
-                           'nodes_age_out': nodes_age_out})
+    df_age = create_df(['date_store', 'nodes_age_in', 'nodes_age_out'],[date_store, nodes_age_in, nodes_age_out])
     df_age.to_csv(PATH_AGE+'Figure14.csv', index=False)
     
     '''
-    We want to evaluate the behaviour of the retweets for the top-scoring nodes:
-    I need 4 lists, the list of nodes in the order I read them, the list containing the community 
-    to which each node belongs, the list with the corresponding in-degree and the list with the 
-    corresponding out-degree.
+    In order to evaluate the behaviour of the retweets for the top-scoring nodes we need 4 lists, the list of nodes in the order
+    we read them, the list containing the community to which each node belongs, the lists with the corresponding in-degree and
+    out-degree.
     '''
     
     nodes = [node for node in nx.nodes(Gvac_subgraph)]
@@ -279,18 +222,10 @@ def main():
     out_degree = [Gvac_subgraph.out_degree(node) for node in nodes]
     
     '''
-    Let's create a dataframe where we put these 4 lists.
+    Let's create a dataframe where we put these 4 lists and we consider the top-users by taking into account the the total degree
+    as in-degree+out-degree, thus we define another column.
     '''
-    df_users = pd.DataFrame({'user': nodes,
-                             'community': community,
-                             'in-degree': in_degree,
-                             'out-degree': out_degree})
-    
-    '''
-    Now it depends on how we want to consider the top-users: we are analyzing them by taking 
-    into account the degree, in particular we decide to consider the total degree as 
-    in-degree+out-degree, thus we define another column.
-    '''
+    df_users = create_df(['user', 'community', 'in-degree', 'out-degree'],[nodes, community, in_degree, out_degree])
     df_users['total-degree']=df_users['in-degree']+df_users['out-degree']
     
     '''
@@ -312,24 +247,22 @@ def main():
     df_tweets.columns = ['Ntweets']
     
     '''
-    In order to join together the three dataframes we use an outer join: in the left join 
-    we took as reference only the dataframe on the 'left part' and we took into account 
-    only the indexes of the dataframe on the 'left part'. With the outer join we take 
+    In order to join together the three dataframes we use an outer join: in the left join we took as reference only the dataframe 
+    on the 'left part' and we took into account only the indexes of the dataframe on the 'left part'. With the outer join we take
     into account the indexes of all the dataframes considered.
     '''
     df_final = df_tweets_B.join(df_tweets_A,how='outer').join(df_tweets,how='outer').fillna(0) #Fill NA/NaN values with 0
     
     '''
-    We are interested in the fraction of retweets with respect to the total number of retweets
-    (or the percentage if we multiply by 100). Thus we create other 2 columns: the fraction 
-    of retweets in the case of group A and in the case of group B
+    We are interested in the fraction of retweets with respect to the total number of retweets (or the percentage if we multiply
+    by 100). Thus we create other 2 columns: the fraction of retweets in the case of group A and in the case of group B
     '''
     df_final['fractionTweetsGroupB'] = df_final['NtweetsGroupB']/df_final['Ntweets']
     df_final['fractionTweetsGroupA'] = df_final['NtweetsGroupA']/df_final['Ntweets']
     
     '''
-    We save these data in order to plot of the behaviour over time of the fraction of 
-    retweets in group A and group B with respect to the total number of retweets.
+    We save these data in order to plot of the behaviour over time of the fraction of retweets in group A and group B with
+    respect to the total number of retweets.
     '''
     df_final.to_csv(PATH_FREQUENCY+'Fraction.csv', index=False)   
 main()
