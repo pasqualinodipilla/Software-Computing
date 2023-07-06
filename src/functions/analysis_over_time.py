@@ -305,61 +305,11 @@ def main():
     df_topB = filter_top_users(df_users, 'B')
     df_topB.to_csv(PATH_FREQUENCY+'topUsersGroupB.csv', index=False)
     
-    '''
-    Here we read the file with all the retweets and we store it in df.
-    '''
-    
-    df=pd.read_pickle(PATH_WAR)
-    
-    '''
-    We delete all the rows with at least a null value.
-    '''
-    df=df.dropna(how='any')
-    
-    '''
-    We create the column 'created_at_days' and we use it for all the dataframe
-    '''
-    df['created_at_days']=[datetime.datetime(t.year,t.month,t.day) for t in df['created_at'].tolist()]
-    
-    '''
-    We rename the df column from user.id to user.
-    '''
-    df=df.rename(columns={'user.id': 'user'})
-    
-    '''
-    Let's create a dataframe in which we have group A over time: we use a 'left join' 
-    where the reference is the user we are interested in and on the other side we have
-    the time during which he's active.
-    '''
-    dGroupA_time = df_topA.set_index('user').join(df.set_index('user'))
-    
-    '''
-    Let's create a dataframe in which we have group B over time: we use a 'left join' 
-    where the reference is the user we are interested in and on the other side we have
-    the time during which he's active.
-    '''
-    dGroupB_time = df_topB.set_index('user').join(df.set_index('user')) 
+    df = read_cleaned_war_data(PATH_WAR)
     df.to_csv(PATH_FREQUENCY+'totalNofRetweets.csv.gz', index=False, compression='gzip')
     
-    '''
-    Our goal is to establish it there is a change in percentage with respect to the total 
-    number of retweets.
-    '''
-    dGroupB_time[dGroupB_time['created_at_days']<(dGroupB_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()
-    #we get equal values in the columns because it is simply a count, so we can select
-    #a column as 'community'
-    #since there is no difference.
-    
-    '''
-    Here we create other 3 dataframes in which I have the total number of tweets,
-    the number of tweets in group A and in group B and I rename the number of the column
-    to make it more explanatory.
-    '''
-    df2 = dGroupB_time[dGroupB_time['created_at_days']<(dGroupB_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
-    df2.columns = ['NtweetsGroupB']
-    
-    df3 = dGroupA_time[dGroupA_time['created_at_days']<(dGroupA_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
-    df3.columns = ['NtweetsGroupA']
+    df_tweets_A = n_tweets_over_time(df, df_top_A, 'NtweetsGroupA')
+    df_tweets_B = n_tweets_over_time(df, df_top_B, 'NtweetsGroupB')
     
     df4 = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
     df4.columns = ['Ntweets']

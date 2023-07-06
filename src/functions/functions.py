@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 import datetime
 import string
 from sklearn.metrics import roc_auc_score
-from configurations import SEED, top_user_fraction
+from configurations import SEED, top_user_fraction, PATH_WAR
 
 def assign_communities(G, com_of_user):
     '''
@@ -321,5 +321,35 @@ def filter_top_users(df_users, label_community):
     number_top_users = int(len(df_users_community)*top_user_fraction)
     df_top = df_users_community.sort_values(by='total-degree', ascending=False)[:number_top_users]
     return df_top
+
+def read_cleaned_war_data(PATH_WAR):
+    
+    '''
+    Here we read the file with all the retweets and we store it in df.
+    '''
+    
+    df=pd.read_pickle(PATH_WAR)
+    
+    '''
+    We delete all the rows with at least a null value.
+    '''
+    df=df.dropna(how='any')
+    
+    '''
+    We create the column 'created_at_days' and we use it for all the dataframe
+    '''
+    df['created_at_days']=[datetime.datetime(t.year,t.month,t.day) for t in df['created_at'].tolist()]
+    
+    '''
+    We rename the df column from user.id to user.
+    '''
+    df=df.rename(columns={'user.id': 'user'})
+    return df
+    
+def n_tweets_over_time(df, df_top, label_community)
+    dGroup_time = df_top.set_index('user').join(df.set_index('user'))
+    df_tweets = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
+    df_tweets.columns = [label_community]
+    return df_tweets
 
                                       
