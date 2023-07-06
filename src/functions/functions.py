@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 import datetime
 import string
 from sklearn.metrics import roc_auc_score
-from configurations import SEED
+from configurations import SEED, top_user_fraction
 
 def assign_communities(G, com_of_user):
     '''
@@ -307,10 +307,19 @@ def gini(x):
     # Gini coefficient:
     return ((np.sum((2 * index - n  - 1) * x)) / (n * np.sum(x)))
 
-def save_df_to_csv(date_store, nodes_group_B_G0, nodes_group_A_G0,  nodes_group_B_G1, nodes_group_A_G1, file_name):
-    df_components = pd.DataFrame({'date_store': date_store, 
-                                  'nodes_group_B_G0': nodes_group_B_G0,
-                                  'nodes_group_A_G0': nodes_group_A_G0,
-                                  'nodes_group_B_G1': nodes_group_B_G1, 
-                                  'nodes_group_A_G1': nodes_group_A_G1})
-    df_components.to_csv(file_name, index=False)
+def create_df(col_names, lists):
+    
+    df = pd.DataFrame()
+    for i, name in enumerate(col_names):
+        df[name] = lists[i]
+    
+    return df
+
+
+def filter_top_users(df_users, label_community):
+    df_users_community = df_users[df_users.community==label_community]
+    number_top_users = int(len(df_users_community)*top_user_fraction)
+    df_top = df_users_community.sort_values(by='total-degree', ascending=False)[:number_top_users]
+    return df_top
+
+                                      

@@ -198,11 +198,8 @@ def main():
     strongly connected component (nodes_group_A_G1), the nodes of group B belonging to the second
     strongly connected component (nodes_group_B_G1).
     '''
-    df_components = pd.DataFrame({'date_store': date_store, 
-                                  'nodes_group_B_G0': nodes_group_B_G0,
-                                  'nodes_group_A_G0': nodes_group_A_G0,
-                                  'nodes_group_B_G1': nodes_group_B_G1, 
-                                  'nodes_group_A_G1': nodes_group_A_G1})
+    df_components = create_df(['date_store', 'nodes_group_B_G0', 'nodes_group_A_G0', 'nodes_group_B_G1', 'nodes_group_A_G1'],
+                             [date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
     df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
     
     '''
@@ -212,11 +209,11 @@ def main():
     the second weakly connected component (nodes_group_A_G1_weak), the nodes of group B 
     belonging to the second weakly connected component (nodes_group_B_G1_weak).
     '''
-    df_components_weak = pd.DataFrame({'date_store': date_store,
-                                       'nodes_group_B_G0_weak': nodes_group_B_G0_weak,
-                                       'nodes_group_A_G0_weak': nodes_group_A_G0_weak,
-                                       'nodes_group_B_G1_weak': nodes_group_B_G1_weak,
-                                       'nodes_group_A_G1_weak': nodes_group_A_G1_weak})
+    df_components_weak = create_df_G0_G1(date_store,
+                                         nodes_group_B_G0_weak,
+                                         nodes_group_A_G0_weak,
+                                         nodes_group_B_G1_weak,
+                                         nodes_group_A_G1)
     df_components_weak.to_csv(PATH_W_COMPONENTS+'Figure9.csv', index=False)
     
     '''
@@ -299,39 +296,20 @@ def main():
     '''
     We define the top users of group A on the basis of the total-degree (we are taking the 1%).
     '''
-    number_top_users = int(len(df_users[df_users.community=='A'])*0.01)
-    df_topA = df_users[df_users.community=='A'].sort_values(by='total-degree', ascending=False)[:number_top_users]
+    df_topA = filter_top_users(df_users, 'A')
     df_topA.to_csv(PATH_FREQUENCY+'topUsersGroupA.csv', index=False)
     
     '''
     We define the top users of group B on the basis of the total-degree (we are taking the 1%).
     '''
-    number_top_usersB = int(len(df_users[df_users.community=='B'])*0.01)
-    df_topB = df_users[df_users.community=='B'].sort_values(by='total-degree', ascending=False)[:number_top_users]
+    df_topB = filter_top_users(df_users, 'B')
     df_topB.to_csv(PATH_FREQUENCY+'topUsersGroupB.csv', index=False)
-    
-    '''
-    I read the two Dataframes from topUsersGroupA.csv and topUserGroupB and I store them 
-    in dGroupA and dGroupB.
-    '''
-    dGroupA = pd.read_csv(PATH_FREQUENCY+'topUsersGroupA.csv')
-    #we use .astype(str) since we want to convert the entire column to type string, 
-    #in fact 'user' was integer
-    dGroupA['user']=dGroupA['user'].astype(str)
-    dGroupA.head()
-    
-    dGroupB = pd.read_csv(PATH_FREQUENCY+'topUsersGroupB.csv')
-    #we use .astype(str) since we want to convert the entire column to type string,
-    #in fact 'user' was integer
-    dGroupB['user']=dGroupB['user'].astype(str)
-    dGroupB.head()
     
     '''
     Here we read the file with all the retweets and we store it in df.
     '''
     
     df=pd.read_pickle(PATH_WAR)
-    df.head()
     
     '''
     We delete all the rows with at least a null value.
@@ -347,24 +325,20 @@ def main():
     We rename the df column from user.id to user.
     '''
     df=df.rename(columns={'user.id': 'user'})
-    df.head()
     
     '''
     Let's create a dataframe in which we have group A over time: we use a 'left join' 
     where the reference is the user we are interested in and on the other side we have
     the time during which he's active.
     '''
-    dGroupA_time = dGroupA.set_index('user').join(df.set_index('user'))
-    dGroupA_time.head()
+    dGroupA_time = df_topA.set_index('user').join(df.set_index('user'))
     
     '''
     Let's create a dataframe in which we have group B over time: we use a 'left join' 
     where the reference is the user we are interested in and on the other side we have
     the time during which he's active.
     '''
-    dGroupB_time = dGroupB.set_index('user').join(df.set_index('user'))
-    dGroupB_time.head()
-    
+    dGroupB_time = df_topB.set_index('user').join(df.set_index('user')) 
     df.to_csv(PATH_FREQUENCY+'totalNofRetweets.csv.gz', index=False, compression='gzip')
     
     '''
@@ -397,7 +371,6 @@ def main():
     into account the indexes of all the dataframes considered.
     '''
     df5 = df2.join(df3,how='outer').join(df4,how='outer').fillna(0) #Fill NA/NaN values with 0
-    df5.head()
     
     '''
     We are interested in the fraction of retweets with respect to the total number of retweets
@@ -406,7 +379,6 @@ def main():
     '''
     df5['fractionTweetsGroupB'] = df5['NtweetsGroupB']/df5['Ntweets']
     df5['fractionTweetsGroupA'] = df5['NtweetsGroupA']/df5['Ntweets']
-    df5.head()
     
     '''
     We save these data in order to plot of the behaviour over time of the fraction of 
