@@ -4,13 +4,14 @@ import pickle
 from collections import Counter 
 from scipy import stats
 import numpy as np
+import os
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import datetime
 import string
 from sklearn.metrics import roc_auc_score
-from configurations import SEED, top_user_fraction, PATH_WAR
+from configurations import SEED, top_user_fraction, PATH_WAR, DIR_FILES
 
 def assign_communities(G, com_of_user):
     '''
@@ -293,6 +294,7 @@ def gini(x):
     # http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm
     # All values are treated equally, arrays must be 1d:
     #x = x.flatten()
+    '''
     if np.amin(x) < 0:
         # Values cannot be negative:
         x -= np.amin(x)
@@ -306,13 +308,24 @@ def gini(x):
     n = x.shape[0]
     # Gini coefficient:
     return ((np.sum((2 * index - n  - 1) * x)) / (n * np.sum(x)))
+    '''
+    total = 0
+    if len(x) >= 1:
+        i = 0
+        for num in x:
+            y = num * (2*i-len(x)-1) / len(x)*sum(x)
+            total += y
+            i += 1
+        return total
+    else:
+        return 0
 
 def create_df(col_names, lists):
     
     df = pd.DataFrame()
     for i, name in enumerate(col_names):
         df[name] = lists[i]
-    
+        #df['name'] = pd.Series(i)
     return df
 
 
@@ -367,4 +380,27 @@ def n_tweets_over_time(df, df_top, label_community):
     df_tweets.columns = [label_community]
     return df_tweets
 
-                                      
+'''              
+def create_date_store(DIR_FILES):
+    #We create also a list in which we store the dates.
+    date_store = []
+    #We order listfiles with np.sort, i.e. the days one after the other.
+    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
+    
+    for file in np.sort(listfiles):
+        
+        if file[17:19]+'-'+file[20:22] =='02-01':
+            date_store.append(file[18:19]+'-'+file[20:22])
+        elif file[17:19] =='03':
+            date_store.append(file[18:19]+'-'+file[20:22])
+        else:
+            date_store.append(file[20:22])
+    Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
+                                        delimiter='\t',create_using=nx.DiGraph,nodetype=str)
+            
+    return date_store, Gvac
+    
+'''
+    
+    
+    

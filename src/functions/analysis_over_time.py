@@ -7,7 +7,8 @@ import os
 from collections import Counter 
 import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
-from functions import compute_connected_component, compute_weak_connected_component, gini
+from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
+from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time
 from configurations import (
     STOR_DIR,
     PATH_COM_OF_USER,
@@ -62,6 +63,7 @@ def main():
     #average age of activity.
     nodes_age_in = []
     nodes_age_out = []
+   
     #We create also a list in which we store the dates.
     date_store = []
     #We order listfiles with np.sort, i.e. the days one after the other.
@@ -76,89 +78,88 @@ def main():
     
         #The first step is to read the edgelist.
         Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
-                                           delimiter='\t',create_using=nx.DiGraph,nodetype=str)
+                                        delimiter='\t',create_using=nx.DiGraph,nodetype=str)
+    
         nodes_original.append(len(Gvac.nodes()))
     
-        #Here we save all the users who receive retweets and the users who retweets, respectively.
-        in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
-        out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
+    #Here we save all the users who receive retweets and the users who retweets, respectively.
+    in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
+    out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
    
-        #In order to compute the average age of activity we have to use lists of
-        #dictionaries because I have to
-        #store the information of the previous day referring to that particular node.
-        #We want a list that contains the different days but within each day we want 
-        #to maintain the track of
-        #each user because or I have to add a new user or I have to consider a user who was active 
-        #also in the past.
+    #In order to compute the average age of activity we have to use lists of
+    #dictionaries because I have to
+    #store the information of the previous day referring to that particular node.
+    #We want a list that contains the different days but within each day we want 
+    #to maintain the track of
+    #each user because or I have to add a new user or I have to consider a user who was active 
+    #also in the past.
 
-        #If our datestore is equal to 1 it means that we're dealing with the first day, 
-        #thus we define our dictionaries as empty. Otherwise we take the dictionary 
-        #of the day before.
-        if len(date_store)==1:
-            dict_nodes_in = {}
-            dict_nodes_out = {}
-            #if this step is satisfied they will be equal to the last element of the nodes list.
-        else:
-            dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
-            dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
+    #If our datestore is equal to 1 it means that we're dealing with the first day, 
+    #thus we define our dictionaries as empty. Otherwise we take the dictionary 
+    #of the day before.
+    if len(date_store)==1:
+        dict_nodes_in = {}
+        dict_nodes_out = {}
+        #if this step is satisfied they will be equal to the last element of the nodes list.
+    else:
+        dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
+        dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
    
-        #In these for loop we read all the nodes and we divide the process into two steps:
-        #we verify if each node
-        #has an in-degree>0, thus if the user taken into account joined actively 
-        #the temporal graph of that day.
-        #In this case we add a day to the activity of that node; we repeat the same 
-        #procedure in the case of the out-degree.
-        for node in nx.nodes(Gvac):
-            if Gvac.in_degree(node)>0:
-                dict_nodes_in.setdefault(node,0)
-                dict_nodes_in[node]+=1
-            if Gvac.out_degree(node)>0:
-                dict_nodes_out.setdefault(node,0)
-                dict_nodes_out[node]+=1
+    #In these for loop we read all the nodes and we divide the process into two steps:
+    #we verify if each node
+    #has an in-degree>0, thus if the user taken into account joined actively 
+    #the temporal graph of that day.
+    #In this case we add a day to the activity of that node; we repeat the same 
+    #procedure in the case of the out-degree.
+    for node in nx.nodes(Gvac):
+        if Gvac.in_degree(node)>0:
+            dict_nodes_in.setdefault(node,0)
+            dict_nodes_in[node]+=1
+        if Gvac.out_degree(node)>0:
+            dict_nodes_out.setdefault(node,0)
+            dict_nodes_out[node]+=1
             
-        #here we have our lists of dictionaries.  
-        nodes_age_in.append(dict_nodes_in)
-        nodes_age_out.append(dict_nodes_out)
+    #here we have our lists of dictionaries.  
+    nodes_age_in.append(dict_nodes_in)
+    nodes_age_out.append(dict_nodes_out)
     
+    '''
+    In the following we evaluate assortativity coefficient and Gini index for each day, we assign the two communities 
+    A and B and  we evaluate the modularity of the real network and the randomized one.
+    '''
+    assortativity=nx.degree_assortativity_coefficient(Gvac)
+    Gini_in = gini(in_degree_original)
+    Gini_out = gini(out_degree_original)
     
+    assortativity_values.append(assortativity)
+    Gini_in_values.append(Gini_in)
+    Gini_out_values.append(Gini_out)
     
-        #We evaluate assortativity coefficient and Gini index for each day.
-        assortativity=nx.degree_assortativity_coefficient(Gvac)
-        Gini_in = gini(in_degree_original)
-        Gini_out = gini(out_degree_original)
+    Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
+    nodes_group_A.append(len(group_A))
+    nodes_group_B.append(len(group_B))
     
-        assortativity_values.append(assortativity)
-        Gini_in_values.append(Gini_in)
-        Gini_out_values.append(Gini_out)
-    
-        #We assigned the two communities A and B.
-        Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
-        nodes_group_A.append(len(group_A))
-        nodes_group_B.append(len(group_B))
-    
-        #We evaluate the modularity of the real network and the randomized one.
-        list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
+    list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
                                                                                           group_A,
                                                                                           group_B)
-        mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
-        mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
-        mod_unweighted_file.append(mod_unweighted)
-        mod_weighted_file.append(mod_weighted)
-        random_mod_unweighted_file.append(list_modularity_unweighted)
-        random_mod_weighted_file.append(list_modularity_weighted)
-    
+    mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
+    mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
+    mod_unweighted_file.append(mod_unweighted)
+    mod_weighted_file.append(mod_weighted)
+    random_mod_unweighted_file.append(list_modularity_unweighted)
+    random_mod_weighted_file.append(list_modularity_weighted)    
         
-        '''
-        We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
-        to compute first two weakly connected components including nodes belonging to group A or to group B.
-        '''
-        isweak = False
-        nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1 = compute_strong_or_weak_components(Gvac_subgraph,
+    '''
+    We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
+    to compute first two weakly connected components including nodes belonging to group A or to group B.
+    '''
+    isweak = False
+    nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1 = compute_strong_or_weak_components(Gvac_subgraph,
                                                                                                                    group_A,
                                                                                                                    group_B, 
                                                                                                                    isweak)
-        isweak = True
-        nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
+    isweak = True
+    nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
     
     '''
     We create a set of dataframes and we save them in order to perform the plots in Plot_Graph.ipynb.

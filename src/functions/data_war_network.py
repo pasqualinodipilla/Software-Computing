@@ -26,7 +26,6 @@ from configurations import (
 def main():
     Gvac=nx.read_weighted_edgelist(PATH_EDGELIST,
                                    delimiter='\t',create_using=nx.DiGraph,nodetype=str)
-    #print(nx.info(Gvac))
     
     with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f:
         com_of_user=pickle.load(f)
@@ -40,7 +39,6 @@ def main():
     to B (mixing matrix).
     '''
     
-    df.head()
     df.to_csv(PATH_MIXING_MATRIX+'MixingWar1.csv', index=False)
     
     '''
@@ -64,7 +62,6 @@ def main():
     '''
     Mixing matrix in weighted case.
     '''
-    df_weight.head()
     df3 = df_weight
     df3.to_csv(PATH_MIXING_MATRIX+'MixingWar4.csv', index=False)
     
@@ -111,38 +108,16 @@ def main():
     
     df_original = pd.DataFrame({'in_degree_original': in_degree_original,
                                 'out_degree_original': out_degree_original})
-    df_original.head()
     df_original.to_csv(PATH_DEGREE_WAR+"DegreeOriginal.csv", index = False)
     
     df_degree_group_A = pd.DataFrame({'in_degree_group_A': in_degree_group_A,
                                       'out_degree_group_A': out_degree_group_A})
-    df_degree_group_A.head()
     df_degree_group_A.to_csv(PATH_DEGREE_WAR+"DegreeGroupA.csv", index = False)
     
     df_degree_group_B = pd.DataFrame({'in_degree_group_B': in_degree_group_B,
                                       'out_degree_group_B': out_degree_group_B})
-    df_degree_group_B.head()
     df_degree_group_B.to_csv(PATH_DEGREE_WAR+"DegreeGroupB.csv", index = False)
     
-    '''
-    Since we want to visualize the percentage occupied by each strongly (or weakly) 
-    connected component we define the lists Gcc and Gcc_weak by using the sorted() 
-    function to get the components in descending order. 
-    '''
-    Gcc = sorted(nx.strongly_connected_components(Gvac_subgraph), key=len, reverse=True)
-    
-    #Here we can see the percentage occupied by each strongly connected component.
-    n_nodes = len(Gvac_subgraph.nodes())
-    #for i, value in enumerate(Gcc):
-        #print(100*len(Gcc[i])/float(n_nodes))
-        
-    Gcc_w = sorted(nx.weakly_connected_components(Gvac_subgraph), key=len, reverse=True)
-    
-    #Here we can see the percentage occupied by each weakly connected component.
-    n_nodes = len(Gvac_subgraph.nodes())
-    #for i, value in enumerate(Gcc_w):
-        #print(100*len(Gcc_w[i])/float(n_nodes), len(Gcc_w[i]))
-        
     '''
     We call the following two functions to get the nodes of group A or group B belonging 
     to the first and second strong (weak) connected component, the first strong (weak) 
@@ -153,7 +128,6 @@ def main():
                                                                                        group_A,
                                                                                        group_B)
     (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak, G0_weak, G1_weak) = compute_weak_connected_component(Gvac_subgraph,group_A,group_B)
-    #Gvac_subgraph.to_undirected()
     G0_weak_undirected = Gvac_subgraph.to_undirected()
     betweenness = nx.betweenness_centrality(G0, k=500)
     betweenness_weak = nx.betweenness_centrality(Gvac_subgraph, k=60)
@@ -202,7 +176,6 @@ def main():
                              stats.spearmanr(betweenessG0,out_degreeG0),
                              stats.spearmanr(betweenessG0_weak,in_degreeG0_weak),
                              stats.spearmanr(betweenessG0_weak,out_degreeG0_weak)]})
-    #df_spearman.head()
     df_spearman.to_csv(DATA_SPEARMAN+'Spearman.csv', index=False)
     
     df_A = pd.DataFrame({'In-degree strong': in_degreeG0, 'Betweeness strong': betweenessG0})
@@ -239,7 +212,6 @@ def main():
     Here we read the file with all the retweets and we store it in df.
     ''' 
     df = pd.read_pickle(PATH_WAR, compression='gzip')
-    #print(df.count())
     
     nltk.download('stopwords')
     nltk.download('punkt')
@@ -296,9 +268,7 @@ def main():
     df_frequencyA = pd.DataFrame({'key_list': key_list, 'values_list': values_list})
     df_frequencyB = pd.DataFrame({'key_listB': key_listB, 'values_listB': values_listB})
     df_frequencyA.to_csv(DATA_FREQUENCY+'Figure15_1.csv', index=False)
-    df_frequencyB.to_csv(DATA_FREQUENCY+'Figure15_2.csv', index=False)
-    
-    
+    df_frequencyB.to_csv(DATA_FREQUENCY+'Figure15_2.csv', index=False) 
 main()
     
     
