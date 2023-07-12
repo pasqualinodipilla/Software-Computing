@@ -270,20 +270,11 @@ def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
 
 
 def compute_strong_or_weak_components(Gvac_subgraph, group_A, group_B, isweak):
-    nodes_group_A_G0 = []
-    nodes_group_B_G0 = []
-    nodes_group_A_G1 = []
-    nodes_group_B_G1 = []
     if isweak:
         x = compute_weak_connected_component(Gvac_subgraph, group_A, group_B)
     else:
         x = compute_connected_component(Gvac_subgraph, group_A, group_B)
-    
-    nodes_group_A_G0.append(len(x[0]))
-    nodes_group_B_G0.append(len(x[1]))
-    nodes_group_A_G1.append(len(x[2]))
-    nodes_group_B_G1.append(len(x[3]))
-    return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1
+    return len(x[0]), len(x[1]), len(x[2]), len(x[3])
     
     
 def gini(x): 
@@ -379,28 +370,3 @@ def n_tweets_over_time(df, df_top, label_community):
     df_tweets = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
     df_tweets.columns = [label_community]
     return df_tweets
-
-'''              
-def create_date_store(DIR_FILES):
-    #We create also a list in which we store the dates.
-    date_store = []
-    #We order listfiles with np.sort, i.e. the days one after the other.
-    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
-    
-    for file in np.sort(listfiles):
-        
-        if file[17:19]+'-'+file[20:22] =='02-01':
-            date_store.append(file[18:19]+'-'+file[20:22])
-        elif file[17:19] =='03':
-            date_store.append(file[18:19]+'-'+file[20:22])
-        else:
-            date_store.append(file[20:22])
-    Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
-                                        delimiter='\t',create_using=nx.DiGraph,nodetype=str)
-            
-    return date_store, Gvac
-    
-'''
-    
-    
-    

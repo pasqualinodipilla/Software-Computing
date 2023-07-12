@@ -63,6 +63,16 @@ def main():
     #average age of activity.
     nodes_age_in = []
     nodes_age_out = []
+    
+    nodes_group_A_G0 = []
+    nodes_group_B_G0 = []
+    nodes_group_A_G1 = []
+    nodes_group_B_G1 = []
+    
+    nodes_group_A_G0_weak = []
+    nodes_group_B_G0_weak = []
+    nodes_group_B_G1_weak = []
+    nodes_group_A_G1_weak = []
    
     #We create also a list in which we store the dates.
     date_store = []
@@ -82,84 +92,94 @@ def main():
     
         nodes_original.append(len(Gvac.nodes()))
     
-    #Here we save all the users who receive retweets and the users who retweets, respectively.
-    in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
-    out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
+        #Here we save all the users who receive retweets and the users who retweets, respectively.
+        in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
+        out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
    
-    #In order to compute the average age of activity we have to use lists of
-    #dictionaries because I have to
-    #store the information of the previous day referring to that particular node.
-    #We want a list that contains the different days but within each day we want 
-    #to maintain the track of
-    #each user because or I have to add a new user or I have to consider a user who was active 
-    #also in the past.
+        #In order to compute the average age of activity we have to use lists of
+        #dictionaries because I have to
+        #store the information of the previous day referring to that particular node.
+        #We want a list that contains the different days but within each day we want 
+        #to maintain the track of
+        #each user because or I have to add a new user or I have to consider a user who was active 
+        #also in the past.
 
-    #If our datestore is equal to 1 it means that we're dealing with the first day, 
-    #thus we define our dictionaries as empty. Otherwise we take the dictionary 
-    #of the day before.
-    if len(date_store)==1:
-        dict_nodes_in = {}
-        dict_nodes_out = {}
-        #if this step is satisfied they will be equal to the last element of the nodes list.
-    else:
-        dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
-        dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
+        #If our datestore is equal to 1 it means that we're dealing with the first day, 
+        #thus we define our dictionaries as empty. Otherwise we take the dictionary 
+        #of the day before.
+        if len(date_store)==1:
+            dict_nodes_in = {}
+            dict_nodes_out = {}
+            #if this step is satisfied they will be equal to the last element of the nodes list.
+        else:
+            dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
+            dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
    
-    #In these for loop we read all the nodes and we divide the process into two steps:
-    #we verify if each node
-    #has an in-degree>0, thus if the user taken into account joined actively 
-    #the temporal graph of that day.
-    #In this case we add a day to the activity of that node; we repeat the same 
-    #procedure in the case of the out-degree.
-    for node in nx.nodes(Gvac):
-        if Gvac.in_degree(node)>0:
-            dict_nodes_in.setdefault(node,0)
-            dict_nodes_in[node]+=1
-        if Gvac.out_degree(node)>0:
-            dict_nodes_out.setdefault(node,0)
-            dict_nodes_out[node]+=1
+        #In these for loop we read all the nodes and we divide the process into two steps:
+        #we verify if each node
+        #has an in-degree>0, thus if the user taken into account joined actively 
+        #the temporal graph of that day.
+        #In this case we add a day to the activity of that node; we repeat the same 
+        #procedure in the case of the out-degree.
+        for node in nx.nodes(Gvac):
+            if Gvac.in_degree(node)>0:
+                dict_nodes_in.setdefault(node,0)
+                dict_nodes_in[node]+=1
+            if Gvac.out_degree(node)>0:
+                dict_nodes_out.setdefault(node,0)
+                dict_nodes_out[node]+=1
             
-    #here we have our lists of dictionaries.  
-    nodes_age_in.append(dict_nodes_in)
-    nodes_age_out.append(dict_nodes_out)
+        #here we have our lists of dictionaries.  
+        nodes_age_in.append(dict_nodes_in)
+        nodes_age_out.append(dict_nodes_out)
     
-    '''
-    In the following we evaluate assortativity coefficient and Gini index for each day, we assign the two communities 
-    A and B and  we evaluate the modularity of the real network and the randomized one.
-    '''
-    assortativity=nx.degree_assortativity_coefficient(Gvac)
-    Gini_in = gini(in_degree_original)
-    Gini_out = gini(out_degree_original)
+        '''
+        In the following we evaluate assortativity coefficient and Gini index for each day, we assign the two communities 
+        A and B and  we evaluate the modularity of the real network and the randomized one.
+        '''
+        assortativity=nx.degree_assortativity_coefficient(Gvac)
+        Gini_in = gini(in_degree_original)
+        Gini_out = gini(out_degree_original)
     
-    assortativity_values.append(assortativity)
-    Gini_in_values.append(Gini_in)
-    Gini_out_values.append(Gini_out)
+        assortativity_values.append(assortativity)
+        Gini_in_values.append(Gini_in)
+        Gini_out_values.append(Gini_out)
     
-    Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
-    nodes_group_A.append(len(group_A))
-    nodes_group_B.append(len(group_B))
+        Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
+        nodes_group_A.append(len(group_A))
+        nodes_group_B.append(len(group_B))
     
-    list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
+        list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
                                                                                           group_A,
                                                                                           group_B)
-    mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
-    mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
-    mod_unweighted_file.append(mod_unweighted)
-    mod_weighted_file.append(mod_weighted)
-    random_mod_unweighted_file.append(list_modularity_unweighted)
-    random_mod_weighted_file.append(list_modularity_weighted)    
+        mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
+        mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
+        mod_unweighted_file.append(mod_unweighted)
+        mod_weighted_file.append(mod_weighted)
+        random_mod_unweighted_file.append(list_modularity_unweighted)
+        random_mod_weighted_file.append(list_modularity_weighted)    
         
-    '''
-    We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
-    to compute first two weakly connected components including nodes belonging to group A or to group B.
-    '''
-    isweak = False
-    nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1 = compute_strong_or_weak_components(Gvac_subgraph,
+        '''
+        We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
+        to compute first two weakly connected components including nodes belonging to group A or to group B.
+        '''
+        isweak = False
+        nodes_group_A_G0_1, nodes_group_B_G0_1, nodes_group_A_G1_1, nodes_group_B_G1_1 = compute_strong_or_weak_components(Gvac_subgraph,
                                                                                                                    group_A,
-                                                                                                                   group_B, 
+                                                                                                                  group_B, 
                                                                                                                    isweak)
-    isweak = True
-    nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
+        nodes_group_A_G0.append(nodes_group_A_G0_1)
+        nodes_group_B_G0.append(nodes_group_B_G0_1)
+        nodes_group_A_G1.append(nodes_group_A_G1_1)
+        nodes_group_B_G1.append(nodes_group_B_G1_1)
+        
+        isweak = True
+        nodes_group_A_G0_weak_1, nodes_group_B_G0_weak_1, nodes_group_A_G1_weak_1, nodes_group_B_G1_weak_1 = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
+        
+        nodes_group_A_G0_weak.append(nodes_group_A_G0_weak_1)
+        nodes_group_B_G0_weak.append(nodes_group_B_G0_weak_1)
+        nodes_group_A_G1_weak.append(nodes_group_A_G1_weak_1)
+        nodes_group_B_G1_weak.append(nodes_group_B_G1_weak_1)
     
     '''
     We create a set of dataframes and we save them in order to perform the plots in Plot_Graph.ipynb.
@@ -169,6 +189,7 @@ def main():
     first connected component, the nodes of group A belonging to the second connected component, the nodes of group B belonging
     to the second strongly connected component.
     '''
+    print([date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
     df_components = create_df(['date_store', 'nodes_group_B_G0', 'nodes_group_A_G0', 'nodes_group_B_G1', 'nodes_group_A_G1'],
                              [date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
     df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
@@ -241,8 +262,8 @@ def main():
     df = read_cleaned_war_data(PATH_WAR)
     df.to_csv(PATH_FREQUENCY+'totalNofRetweets.csv.gz', index=False, compression='gzip')
     
-    df_tweets_A = n_tweets_over_time(df, df_top_A, 'NtweetsGroupA')
-    df_tweets_B = n_tweets_over_time(df, df_top_B, 'NtweetsGroupB')
+    df_tweets_A = n_tweets_over_time(df, df_topA, 'NtweetsGroupA')
+    df_tweets_B = n_tweets_over_time(df, df_topB, 'NtweetsGroupB')
     
     df_tweets = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
     df_tweets.columns = ['Ntweets']
