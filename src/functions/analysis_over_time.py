@@ -8,7 +8,7 @@ from collections import Counter
 import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
-from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time
+from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time, age_of_activity, create_date_store
 from configurations import (
     STOR_DIR,
     PATH_COM_OF_USER,
@@ -43,7 +43,7 @@ def main():
     with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f:
         com_of_user=pickle.load(f)
     
-    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
+    #listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
     #let's create lists in which we save the information we need
     mod_unweighted_file = []
     mod_weighted_file = []
@@ -73,101 +73,70 @@ def main():
     nodes_group_B_G0_weak = []
     nodes_group_B_G1_weak = []
     nodes_group_A_G1_weak = []
-   
+    
+    for Gvac in Gvac_days:
+        date_store, Gvac_days = create_date_store(DIR_FILES)
+    '''
     #We create also a list in which we store the dates.
     date_store = []
     #We order listfiles with np.sort, i.e. the days one after the other.
     for file in np.sort(listfiles):
-        
+
         if file[17:19]+'-'+file[20:22] =='02-01':
             date_store.append(file[18:19]+'-'+file[20:22])
         elif file[17:19] =='03':
             date_store.append(file[18:19]+'-'+file[20:22])
         else:
             date_store.append(file[20:22])
-    
+
         #The first step is to read the edgelist.
         Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
-                                        delimiter='\t',create_using=nx.DiGraph,nodetype=str)
-    
+                                            delimiter='\t',create_using=nx.DiGraph,nodetype=str)
+
+    '''
         nodes_original.append(len(Gvac.nodes()))
     
         #Here we save all the users who receive retweets and the users who retweets, respectively.
         in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
         out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
-   
-        #In order to compute the average age of activity we have to use lists of
-        #dictionaries because I have to
-        #store the information of the previous day referring to that particular node.
-        #We want a list that contains the different days but within each day we want 
-        #to maintain the track of
-        #each user because or I have to add a new user or I have to consider a user who was active 
-        #also in the past.
-
-        #If our datestore is equal to 1 it means that we're dealing with the first day, 
-        #thus we define our dictionaries as empty. Otherwise we take the dictionary 
-        #of the day before.
-        if len(date_store)==1:
-            dict_nodes_in = {}
-            dict_nodes_out = {}
-            #if this step is satisfied they will be equal to the last element of the nodes list.
-        else:
-            dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
-            dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
-   
-        #In these for loop we read all the nodes and we divide the process into two steps:
-        #we verify if each node
-        #has an in-degree>0, thus if the user taken into account joined actively 
-        #the temporal graph of that day.
-        #In this case we add a day to the activity of that node; we repeat the same 
-        #procedure in the case of the out-degree.
-        for node in nx.nodes(Gvac):
-            if Gvac.in_degree(node)>0:
-                dict_nodes_in.setdefault(node,0)
-                dict_nodes_in[node]+=1
-            if Gvac.out_degree(node)>0:
-                dict_nodes_out.setdefault(node,0)
-                dict_nodes_out[node]+=1
-            
-        #here we have our lists of dictionaries.  
-        nodes_age_in.append(dict_nodes_in)
-        nodes_age_out.append(dict_nodes_out)
-    
+        
+        nodes_age_in, nodes_age_out = age_of_activity(Gvac, date_store, nodes_age_in, nodes_age_out)
+        
         '''
         In the following we evaluate assortativity coefficient and Gini index for each day, we assign the two communities 
         A and B and  we evaluate the modularity of the real network and the randomized one.
         '''
+        
         assortativity=nx.degree_assortativity_coefficient(Gvac)
         Gini_in = gini(in_degree_original)
         Gini_out = gini(out_degree_original)
     
-        assortativity_values.append(assortativity)
-        Gini_in_values.append(Gini_in)
-        Gini_out_values.append(Gini_out)
-    
         Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
-        nodes_group_A.append(len(group_A))
-        nodes_group_B.append(len(group_B))
-    
         list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
                                                                                           group_A,
                                                                                           group_B)
         mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
         mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
+        
+        assortativity_values.append(assortativity)
+        Gini_in_values.append(Gini_in)
+        Gini_out_values.append(Gini_out)
+       
+        nodes_group_A.append(len(group_A))
+        nodes_group_B.append(len(group_B))
+        
         mod_unweighted_file.append(mod_unweighted)
         mod_weighted_file.append(mod_weighted)
         random_mod_unweighted_file.append(list_modularity_unweighted)
         random_mod_weighted_file.append(list_modularity_weighted)    
+        
         
         '''
         We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
         to compute first two weakly connected components including nodes belonging to group A or to group B.
         '''
         isweak = False
-        nodes_group_A_G0_1, nodes_group_B_G0_1, nodes_group_A_G1_1, nodes_group_B_G1_1 = compute_strong_or_weak_components(Gvac_subgraph,
-                                                                                                                   group_A,
-                                                                                                                  group_B, 
-                                                                                                                   isweak)
+        nodes_group_A_G0_1, nodes_group_B_G0_1, nodes_group_A_G1_1, nodes_group_B_G1_1 = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
         nodes_group_A_G0.append(nodes_group_A_G0_1)
         nodes_group_B_G0.append(nodes_group_B_G0_1)
         nodes_group_A_G1.append(nodes_group_A_G1_1)
@@ -189,7 +158,6 @@ def main():
     first connected component, the nodes of group A belonging to the second connected component, the nodes of group B belonging
     to the second strongly connected component.
     '''
-    print([date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
     df_components = create_df(['date_store', 'nodes_group_B_G0', 'nodes_group_A_G0', 'nodes_group_B_G1', 'nodes_group_A_G1'],
                              [date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
     df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
@@ -276,16 +244,11 @@ def main():
     df_final = df_tweets_B.join(df_tweets_A,how='outer').join(df_tweets,how='outer').fillna(0) #Fill NA/NaN values with 0
     
     '''
-    We are interested in the fraction of retweets with respect to the total number of retweets (or the percentage if we multiply
-    by 100). Thus we create other 2 columns: the fraction of retweets in the case of group A and in the case of group B
+    Here we obtain and we save the fraction of retweets with respect to the total number of retweets in order to plot its
+    behaviour over time: we create other 2 columns, the fraction of retweets in the case of group A and in the case of group B.
     '''
     df_final['fractionTweetsGroupB'] = df_final['NtweetsGroupB']/df_final['Ntweets']
     df_final['fractionTweetsGroupA'] = df_final['NtweetsGroupA']/df_final['Ntweets']
-    
-    '''
-    We save these data in order to plot of the behaviour over time of the fraction of retweets in group A and group B with
-    respect to the total number of retweets.
-    '''
     df_final.to_csv(PATH_FREQUENCY+'Fraction.csv', index=False)   
 main()
     

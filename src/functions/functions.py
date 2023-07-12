@@ -10,6 +10,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import datetime
 import string
+import copy
 from sklearn.metrics import roc_auc_score
 from configurations import SEED, top_user_fraction, PATH_WAR, DIR_FILES
 
@@ -370,3 +371,75 @@ def n_tweets_over_time(df, df_top, label_community):
     df_tweets = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
     df_tweets.columns = [label_community]
     return df_tweets
+
+def age_of_activity(Gvac, date_store, nodes_age_in, nodes_age_out):
+    '''
+    In order to compute the average age of activity we have to use lists of dictionaries because I have to store the information
+    of the previous day referring to that particular node. We want a list that contains the different days but within each day 
+    we want to maintain the track of each user because or I have to add a new user or I have to consider a user who was active 
+    also in the past. If our datestore is equal to 1 it means that we're dealing with the first day, thus we define our 
+    dictionaries as empty. Otherwise we take the dictionary of the day before.
+    In these for loop we read all the nodes and we divide the process into two steps:
+    - we verify if each node has an in-degree>0, thus if the user taken into account joined actively the temporal graph of that
+    day. In this case we add a day to the activity of that node;
+    - we repeat the same procedure in the case of the out-degree.
+    '''
+    if len(date_store)==1:
+        dict_nodes_in = {}
+        dict_nodes_out = {}
+    #if this step is satisfied they will be equal to the last element of the nodes list.
+    else:
+        dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
+        dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
+    
+    for node in nx.nodes(Gvac):
+        if Gvac.in_degree(node)>0:
+            dict_nodes_in.setdefault(node,0)
+            dict_nodes_in[node]+=1
+        if Gvac.out_degree(node)>0:
+            dict_nodes_out.setdefault(node,0)
+            dict_nodes_out[node]+=1
+            
+    #here we have our lists of dictionaries.  
+    nodes_age_in.append(dict_nodes_in)
+    nodes_age_out.append(dict_nodes_out)
+    return nodes_age_in, nodes_age_out
+
+def create_date_store(DIR_FILES):
+    listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
+    date_store = []
+    Gvac_days = []
+    #We order listfiles with np.sort, i.e. the days one after the other.
+    for file in np.sort(listfiles):
+
+        if file[17:19]+'-'+file[20:22] =='02-01':
+            date_store.append(file[18:19]+'-'+file[20:22])
+        elif file[17:19] =='03':
+            date_store.append(file[18:19]+'-'+file[20:22])
+        else:
+            date_store.append(file[20:22])
+
+        #The first step is to read the edgelist.
+        Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
+                                            delimiter='\t',create_using=nx.DiGraph,nodetype=str)
+        
+        Gvac_days.append(Gvac)
+    return date_store, Gvac_days
+
+def mixing_matrix_manipulation(df):
+    '''
+    Each entry is divided by the total number of links taken into account.
+    '''
+    tot_links = df.sum().sum()
+    df1 = df/float(tot_links)
+    '''
+    We take into account the total number of links starting from community A, i.e. 
+    the sum of the elements of the first row of the mixing matrix, and we divide each 
+    element of the first row by this number. Then we repeat the procedure for the second row.
+    In this way we get the average behaviour if a link starts from community A or from community B.
+    '''
+    df.loc['A']=df.loc['A']/df.sum(axis=1).to_dict()['A']
+    df.loc['B']=df.loc['B']/df.sum(axis=1).to_dict()['B']
+    df2 = df
+    return df1, df2
+    
