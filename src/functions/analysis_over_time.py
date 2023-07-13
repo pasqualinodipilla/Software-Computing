@@ -160,11 +160,11 @@ def main():
     '''
     df_components = create_df(['date_store', 'nodes_group_B_G0', 'nodes_group_A_G0', 'nodes_group_B_G1', 'nodes_group_A_G1'],
                              [date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
-    df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
-    
     df_components_weak = create_df(['date_store','nodes_group_B_G0_weak','nodes_group_A_G0_weak','nodes_group_B_G1_weak',
                                     'nodes_group_A_G1_weak'],[date_store, nodes_group_B_G0_weak, nodes_group_A_G0_weak,
                               nodes_group_B_G1_weak, nodes_group_A_G1_weak])
+    
+    df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
     df_components_weak.to_csv(PATH_W_COMPONENTS+'Figure9.csv', index=False)
     
     '''
@@ -176,17 +176,15 @@ def main():
     - the dates (date_store), the modularity of the real network and the modularity of the radomized one.
     '''
     df_assortativity = create_df(['date_store', 'assortativity_values'],[date_store, assortativity_values])
-    df_assortativity.to_csv(PATH_ASSORT+'Figure10.csv', index=False)
-    
     df_gini = create_df(['date_store', 'Gini_in_values', 'Gini_out_values'], [date_store, Gini_in_values, Gini_out_values])
-    df_gini.to_csv(PATH_GINI+'Figure11.csv', index=False)
-    
     df_n_of_nodes = create_df(['date_store', 'nodes_group_A', 'nodes_group_B', 'nodes_original'], [date_store, nodes_group_A,
                                                                                                   nodes_group_B, nodes_original])
-    df_n_of_nodes.to_csv(PATH_N_NODES+'Figure12.csv', index=False)
-    
     df_modularity = create_df(['date_store', 'mod_weighted_file', 'random_mod_weighted_file'],[date_store, mod_weighted_file,
                                                                                               random_mod_weighted_file])
+    
+    df_assortativity.to_csv(PATH_ASSORT+'Figure10.csv', index=False)
+    df_gini.to_csv(PATH_GINI+'Figure11.csv', index=False)
+    df_n_of_nodes.to_csv(PATH_N_NODES+'Figure12.csv', index=False)
     df_modularity.to_csv(PATH_MODULARITY+'Figure13.csv', index=False)
     
     '''
@@ -195,8 +193,7 @@ def main():
     will be users that have age 1, since a day passed, and new users that will have age 0, and so on. So, after the second day
     there will be some users of the first day that are active or not, there will be some new users and there will be some users
     that had not been active at all.
-    '''
-    
+    '''   
     df_age = create_df(['date_store', 'nodes_age_in', 'nodes_age_out'],[date_store, nodes_age_in, nodes_age_out])
     df_age.to_csv(PATH_AGE+'Figure14.csv', index=False)
     
@@ -204,8 +201,7 @@ def main():
     In order to evaluate the behaviour of the retweets for the top-scoring nodes we need 4 lists, the list of nodes in the order
     we read them, the list containing the community to which each node belongs, the lists with the corresponding in-degree and
     out-degree.
-    '''
-    
+    '''   
     nodes = [node for node in nx.nodes(Gvac_subgraph)]
     community = [Gvac_subgraph.nodes[node]["community"] for node in nodes]
     in_degree = [Gvac_subgraph.in_degree(node) for node in nodes]
@@ -234,15 +230,13 @@ def main():
     df_tweets_B = n_tweets_over_time(df, df_topB, 'NtweetsGroupB')
     
     df_tweets = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
-    df_tweets.columns = ['Ntweets']
-    
+    df_tweets.columns = ['Ntweets'] 
     '''
     In order to join together the three dataframes we use an outer join: in the left join we took as reference only the dataframe 
     on the 'left part' and we took into account only the indexes of the dataframe on the 'left part'. With the outer join we take
     into account the indexes of all the dataframes considered.
     '''
-    df_final = df_tweets_B.join(df_tweets_A,how='outer').join(df_tweets,how='outer').fillna(0) #Fill NA/NaN values with 0
-    
+    df_final = df_tweets_B.join(df_tweets_A,how='outer').join(df_tweets,how='outer').fillna(0) #Fill NA/NaN values with 0 
     '''
     Here we obtain and we save the fraction of retweets with respect to the total number of retweets in order to plot its
     behaviour over time: we create other 2 columns, the fraction of retweets in the case of group A and in the case of group B.

@@ -8,8 +8,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import string
 from sklearn.feature_extraction.text import TfidfVectorizer
-from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
-from functions import compute_connected_component, compute_weak_connected_component, gini, mixing_matrix_manipulation
+from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity, degree_distributions
+from functions import compute_connected_component, compute_weak_connected_component, gini, mixing_matrix_manipulation, create_df
+from functions import words_frequency
 from configurations import (
     STOR_DIR,
     PATH_EDGELIST,
@@ -56,37 +57,24 @@ def main():
     We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and group B and we save
     them in a corresponding file.
     '''
-    in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
-    out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
+    in_degree_original, out_degree_original, in_degree_group_A, out_degree_group_A, in_degree_group_B, out_degree_group_B = degree_distributions(Gvac, Gvac_A, Gvac_B)
     
-    in_degree_group_A = [Gvac_A.in_degree(node) for node in nx.nodes(Gvac_A)]
-    out_degree_group_A = [Gvac_A.out_degree(node) for node in nx.nodes(Gvac_A)]
-    
-    in_degree_group_B = [Gvac_B.in_degree(node) for node in nx.nodes(Gvac_B)]
-    out_degree_group_B = [Gvac_B.out_degree(node) for node in nx.nodes(Gvac_B)]
-    
-    df_original = pd.DataFrame({'in_degree_original': in_degree_original,
-                                'out_degree_original': out_degree_original})
+    df_original = create_df(['in_degree_original', 'out_degree_original'],[in_degree_original, out_degree_original])
+    df_degree_group_A = create_df(['in_degree_group_A', 'out_degree_group_A'],[in_degree_group_A, out_degree_group_A])
+    df_degree_group_B = create_df(['in_degree_group_B', 'out_degree_group_B'],[in_degree_group_B, out_degree_group_B])
+
     df_original.to_csv(PATH_DEGREE_WAR+"DegreeOriginal.csv", index = False)
-    
-    df_degree_group_A = pd.DataFrame({'in_degree_group_A': in_degree_group_A,
-                                      'out_degree_group_A': out_degree_group_A})
     df_degree_group_A.to_csv(PATH_DEGREE_WAR+"DegreeGroupA.csv", index = False)
-    
-    df_degree_group_B = pd.DataFrame({'in_degree_group_B': in_degree_group_B,
-                                      'out_degree_group_B': out_degree_group_B})
     df_degree_group_B.to_csv(PATH_DEGREE_WAR+"DegreeGroupB.csv", index = False)
     
     '''
-    We call the following two functions to get the nodes of group A or group B belonging 
-    to the first and second strong (weak) connected component, the first strong (weak) 
-    connected component G0 and the second strong (weak) connected component G1. After 
-    that we need an undirected representation of the digraph in order to compute the betweeness.
+    We call the following two functions to get the nodes of group A or group B belonging to the first and second strong (weak)
+    connected component, the first strong (weak) connected component G0 and the second strong (weak) connected component G1.
+    After that we need an undirected representation of the digraph in order to compute the betweeness.
     '''
-    group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(Gvac_subgraph,
-                                                                                       group_A,
-                                                                                       group_B)
-    (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak, G0_weak, G1_weak) = compute_weak_connected_component(Gvac_subgraph,group_A,group_B)
+    group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(Gvac_subgraph,group_A,group_B)
+    (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak, G0_weak, G1_weak)= compute_weak_connected_component(Gvac_subgraph,group_A,group_B)
+    
     G0_weak_undirected = Gvac_subgraph.to_undirected()
     betweenness = nx.betweenness_centrality(G0, k=500)
     betweenness_weak = nx.betweenness_centrality(Gvac_subgraph, k=60)
@@ -134,20 +122,22 @@ def main():
             'SpearmanValue':[stats.spearmanr(betweenessG0,in_degreeG0), 
                              stats.spearmanr(betweenessG0,out_degreeG0),
                              stats.spearmanr(betweenessG0_weak,in_degreeG0_weak),
-                             stats.spearmanr(betweenessG0_weak,out_degreeG0_weak)]})
+                             stats.spearmanr(betweenessG0_weak,out_degreeG0_weak)]})    
     df_spearman.to_csv(DATA_SPEARMAN+'Spearman.csv', index=False)
     
-    df_A = pd.DataFrame({'In-degree strong': in_degreeG0, 'Betweeness strong': betweenessG0})
+    df_A = create_df(['In-degree strong', 'Betweeness strong'],[in_degreeG0, betweenessG0])
+    df_B = create_df(['Out-degree strong', 'Betweeness strong'],[out_degreeG0, betweenessG0])
+    df_C = create_df(['In-degree weak', 'Betweeness weak'],[in_degreeG0_weak, betweenessG0_weak])
+    df_D = create_df(['Out-degree weak', 'Betweeness weak'],[out_degreeG0_weak, betweenessG0_weak])
+    
     df_A.to_csv(DATA_BETWEENESS+'PanelA.csv', index=False)
-    df_B = pd.DataFrame({'Out-degree strong': out_degreeG0, 'Betweeness strong': betweenessG0})
     df_B.to_csv(DATA_BETWEENESS+'PanelB.csv', index=False)
-    df_C = pd.DataFrame({'In-degree weak': in_degreeG0_weak, 'Betweeness weak': betweenessG0_weak})
     df_C.to_csv(DATA_BETWEENESS+'PanelC.csv', index=False)
-    df_D = pd.DataFrame({'Out-degree weak': out_degreeG0_weak,
-                         'Betweeness weak': betweenessG0_weak})
     df_D.to_csv(DATA_BETWEENESS+'PanelD.csv', index=False)
     
-    #here we evaluate the clustering coefficient
+    '''
+    Here we evaluate the clustering coefficient
+    '''
     lcc = nx.clustering(Gvac)
     nodes = []
     clustering = []
@@ -155,17 +145,13 @@ def main():
         nodes.append(node)
         clustering.append(lcc[node])
         
-    df_clustering = pd.DataFrame({'Nodes': nodes, 'Clustering coefficient': clustering})
+    df_clustering = create_df(['Nodes', 'Clustering coefficient'],[nodes, clustering])
+    df_clust_indegree = create_df(['In-degree', 'Clustering coefficient'],[in_degree_original, clustering])
+    df_clust_outdegree = create_df(['Out-degree', 'Clustering coefficient'],[out_degree_original, clustering])
+    
     df_clustering.to_csv(DATA_CLUSTERING+'ClusteringDistribution.csv', index=False)
-    
-    df_clust_indegree = pd.DataFrame({'In-degree': in_degree_original,
-                                      'Clustering coefficient': clustering})
     df_clust_indegree.to_csv(DATA_CLUSTERING+'ClusteringInDegree.csv', index=False)
-    
-    df_clust_outdegree = pd.DataFrame({'Out-degree': out_degree_original,
-                                       'Clustering coefficient': clustering})
-    df_clust_outdegree.to_csv(DATA_CLUSTERING+'ClusteringOutDegree.csv',
-                              index=False)
+    df_clust_outdegree.to_csv(DATA_CLUSTERING+'ClusteringOutDegree.csv',index=False)
     
     '''
     Here we read the file with all the retweets and we store it in df.
@@ -181,7 +167,7 @@ def main():
     B is against vaccine, also in the war network the users belonging to group A and group B share
     a similar opinion about a different topic, for example we would expect that users belonging
     to group A are pro Ukraine and users belonging to group B are pro Russia.
-    '''
+    
     df_sel=df[['text', 'retweeted_status.user.id']].drop_duplicates() 
     #It returns DataFrame with duplicate rows removed.
     df_A = pd.DataFrame({'user': group_A})
@@ -223,9 +209,13 @@ def main():
     values_listB, key_listB = zip(*sorted(zip(values_listB,key_listB)))
     
     key_listB[-20:] #last 20 mostly used words in group B.
+    '''
+   
+    key_list, value_list = words_frequency(df, group_A)
+    key_listB, value_listB = words_frequency(df, group_B)
     
-    df_frequencyA = pd.DataFrame({'key_list': key_list, 'values_list': values_list})
-    df_frequencyB = pd.DataFrame({'key_listB': key_listB, 'values_listB': values_listB})
+    df_frequencyA = create_df(['key_list', 'values_list'],[key_list, values_list])
+    df_frequencyB = create_df(['key_listB', 'values_listB'],[key_listB, values_listB])
     df_frequencyA.to_csv(DATA_FREQUENCY+'Figure15_1.csv', index=False)
     df_frequencyB.to_csv(DATA_FREQUENCY+'Figure15_2.csv', index=False) 
 main()

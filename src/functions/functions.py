@@ -8,6 +8,8 @@ import os
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+import string
+from sklearn.feature_extraction.text import TfidfVectorizer
 import datetime
 import string
 import copy
@@ -317,7 +319,6 @@ def create_df(col_names, lists):
     df = pd.DataFrame()
     for i, name in enumerate(col_names):
         df[name] = lists[i]
-        #df['name'] = pd.Series(i)
     return df
 
 
@@ -459,4 +460,36 @@ def degree_distributions(Gvac, Gvac_A, Gvac_B):
     in_degree_group_B = [Gvac_B.in_degree(node) for node in nx.nodes(Gvac_B)]
     out_degree_group_B = [Gvac_B.out_degree(node) for node in nx.nodes(Gvac_B)]
     return in_degree_original, out_degree_original, in_degree_group_A, out_degree_group_A, in_degree_group_B, out_degree_group_B
+
+def words_frequency(df, group):
+    '''
+    Here we are going to evaluate the frequency of the mostly used words within the two groups
+    in order to understand if, as in the vaccine network where group A is pro vaccine and group
+    B is against vaccine, also in the war network the users belonging to group A and group B share
+    a similar opinion about a different topic, for example we would expect that users belonging
+    to group A are pro Ukraine and users belonging to group B are pro Russia.
+    '''
     
+    df_sel=df[['text', 'retweeted_status.user.id']].drop_duplicates() 
+    #It returns DataFrame with duplicate rows removed.
+    df_group = pd.DataFrame({'user': group})
+    #with set_index we set the DataFrame index (row labels) using one or more existing columns or arrays (of the correct length).
+    #The join() method takes all items in an iterable and joins them into one string 
+    #(in this way we get user and corresponding text of the retweeted status).
+    df_group_retweet = df_group.set_index('user').join(df_sel.set_index('retweeted_status.user.id')[['text']])
+    df_group_retweet = df_group_retweet[df_group_retweet['text'].isnull()==False] #Detect missing values
+    
+    list_text = df_group_retweet['text'].tolist() 
+    #let's convert df_group_retweet['text'] to an ordinary list with the same elements.
+    text = ' '.join(list_text) #all items in list_text are joined into one string
+    #let's delete some irrelevant words or characters.
+    stop = set(stopwords.words('italian') + list(string.punctuation) + ['https', '...', '”', '“', '``', "''", '’',])
+    #tokenizers can be used to find the words in a string. Then we go ahead with counting
+    #the word occurrence.
+    listToken = [i  for i in word_tokenize(text.lower()) if i not in stop]
+    counterToken = Counter(listToken)
+    key_list = list(counterToken.keys())
+    values_list = [counterToken[key] for key in key_list]
+    values_list, key_list = zip(*sorted(zip(values_list,key_list)))
+    
+    return value_list, key_list
