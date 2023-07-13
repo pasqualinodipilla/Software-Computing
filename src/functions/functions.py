@@ -428,6 +428,8 @@ def create_date_store(DIR_FILES):
 
 def mixing_matrix_manipulation(df):
     '''
+    df will represent the table with the number of links from A to A, from A to B, from B to A and from B to B 
+    (mixing matrix).
     Each entry is divided by the total number of links taken into account.
     '''
     tot_links = df.sum().sum()
@@ -436,10 +438,25 @@ def mixing_matrix_manipulation(df):
     We take into account the total number of links starting from community A, i.e. 
     the sum of the elements of the first row of the mixing matrix, and we divide each 
     element of the first row by this number. Then we repeat the procedure for the second row.
-    In this way we get the average behaviour if a link starts from community A or from community B.
+    In this way we get the average behaviour if a link starts from community A or from community B. We will do these step
+    in the weighted and unweighted cases.
     '''
     df.loc['A']=df.loc['A']/df.sum(axis=1).to_dict()['A']
     df.loc['B']=df.loc['B']/df.sum(axis=1).to_dict()['B']
     df2 = df
     return df1, df2
+
+def degree_distributions(Gvac, Gvac_A, Gvac_B):
+    '''
+    We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and group B a
+    '''
+    in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
+    out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
+    
+    in_degree_group_A = [Gvac_A.in_degree(node) for node in nx.nodes(Gvac_A)]
+    out_degree_group_A = [Gvac_A.out_degree(node) for node in nx.nodes(Gvac_A)]
+    
+    in_degree_group_B = [Gvac_B.in_degree(node) for node in nx.nodes(Gvac_B)]
+    out_degree_group_B = [Gvac_B.out_degree(node) for node in nx.nodes(Gvac_B)]
+    return in_degree_original, out_degree_original, in_degree_group_A, out_degree_group_A, in_degree_group_B, out_degree_group_B
     

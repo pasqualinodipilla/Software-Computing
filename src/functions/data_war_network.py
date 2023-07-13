@@ -31,22 +31,11 @@ def main():
         com_of_user=pickle.load(f)
     
     Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
-    df, df_weight = mixing_matrix(Gvac, com_of_user)
+    df, df_weight = mixing_matrix(Gvac, com_of_user) #mixing matrix in unweighted and weighted case
     df1, df2 = mixing_matrix_manipulation(df)
     df3, df4 = mixing_matrix_manipulation(df_weight)
     '''
-    I save a file for each table:
-    1-table representing the number of links from A to A, from A to B, from B to A and from B to B (mixing matrix in the
-    unweighted case).
-    2-Each entry is divided by the total number of links taken into account.
-    3-We take into account the total number of links starting from community A, i.e. the sum of the elements of the first row of
-    the mixing matrix, and we divide each element of the first row by this number. Then we repeat the procedure for the second
-    row. In this way we get the average behaviour if a link starts from community A or from community B.
-    4-Mixing matrix in weighted case.
-    5-Each entry is divided by the total number of links taken into account, in the weighted case.
-    6-Referring to the weighted case, we take into account the total number of links starting from community A, i.e. the sum of
-    the elements of the first row of the mixing matrix, and we divide each element of the first row by this number. Then we
-    repeat the procedure for the second row.
+    I save a file for each table.
     '''
     df.to_csv(PATH_MIXING_MATRIX+'MixingWar1.csv', index=False)
     df1.to_csv(PATH_MIXING_MATRIX+'MixingWar2.csv', index=False)
@@ -54,61 +43,18 @@ def main():
     df_weight.to_csv(PATH_MIXING_MATRIX+'MixingWar4.csv', index=False)
     df3.to_csv(PATH_MIXING_MATRIX+'MixingWar5.csv', index=False)
     df4.to_csv(PATH_MIXING_MATRIX+'MixingWar6.csv', index=False)
-    '''
-    Each entry is divided by the total number of links taken into account.
     
-    total_links = df.sum().sum()
-    df1 = df/float(total_links)
-    df1.to_csv(PATH_MIXING_MATRIX+'MixingWar2.csv', index=False)
-    
-    
-    We take into account the total number of links starting from community A, i.e. 
-    the sum of the elements of the first row of the mixing matrix, and we divide each 
-    element of the first row by this number. Then we repeat the procedure for the second row.
-    In this way we get the average behaviour if a link starts from community A or from community B.
-    
-    df.loc['A']=df.loc['A']/df.sum(axis=1).to_dict()['A']
-    df.loc['B']=df.loc['B']/df.sum(axis=1).to_dict()['B']
-    df2 = df
-    df2.to_csv(PATH_MIXING_MATRIX+'MixingWar3.csv', index=False)
-    
-    
-    Mixing matrix in weighted case.
-    
-    df3 = df_weight
-    df3.to_csv(PATH_MIXING_MATRIX+'MixingWar4.csv', index=False)
-    
-    
-    Each entry is divided by the total number of links taken into account, in the weighted case.
-    
-    total_links = df_weight.sum().sum()
-    df4 = df_weight/float(total_links)
-    df4.to_csv(PATH_MIXING_MATRIX+'MixingWar5.csv', index=False)
-    
-    
-    Referring to the weighted case, we take into account the total number of links starting 
-    from community A, i.e. the sum of the elements of the first row of the mixing matrix, 
-    and we divide each element of the first row by this number. Then we repeat the procedure 
-    for the second row. In this way we get the average behaviour if a link starts 
-    from community A or from community B.
-    
-    df_weight.loc['A']=df_weight.loc['A']/df_weight.sum(axis=1).to_dict()['A']
-    df_weight.loc['B']=df_weight.loc['B']/df_weight.sum(axis=1).to_dict()['B']
-    df5 = df_weight
-    df5.to_csv(PATH_MIXING_MATRIX+'MixingWar6.csv', index=False)
-    '''
     com_of_usersWar={}
     for node in nx.nodes(Gvac):
-        com_of_usersWar[node]=com_of_user[node]
-        
+        com_of_usersWar[node]=com_of_user[node]    
     '''
     Number of nodes belonging to the communities in the war network.
     '''
     Counter(list(com_of_usersWar.values()))
     
     '''
-    We create 6 lists to store the in- out-degree of the nodes belonging to the whole network,
-    group A and group B and we save them in a corresponding file.
+    We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and group B and we save
+    them in a corresponding file.
     '''
     in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
     out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
