@@ -9,7 +9,7 @@ import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
 from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time, age_of_activity, create_date_store
-from functions import degree_distributions, get_daily_nodes
+from functions import degree_distributions, get_daily_nodes, get_daily_Gini_in_out
 from configurations import (
     STOR_DIR,
     PATH_COM_OF_USER,
@@ -51,8 +51,6 @@ def main():
     random_mod_unweighted_file = []
     random_mod_weighted_file = []
     assortativity_values = []
-    Gini_in_values = []
-    Gini_out_values = []
     #In the following list we save all the nodes belonging to our war network.
     nodes_original = []
     #Here we save the nodes belonging to a single community of the war network, 
@@ -77,9 +75,8 @@ def main():
     
     date_store, Gvac_days = create_date_store(DIR_FILES)
     nodes_original = get_daily_nodes(Gvac_days)
-    for i, Gvac in enumerate(Gvac_days):   
-        #Here we save all the users who receive retweets and the users who retweets, respectively.
-        in_degree_original, out_degree_original = degree_distributions(Gvac)        
+    Gini_in_values, Gini_out_values = get_daily_Gini_in_out(Gvac_days)
+    for i, Gvac in enumerate(Gvac_days):         
         nodes_age_in, nodes_age_out = age_of_activity(Gvac, i, nodes_age_in, nodes_age_out)
         
         '''
@@ -88,8 +85,6 @@ def main():
         '''
         
         assortativity=nx.degree_assortativity_coefficient(Gvac)
-        Gini_in = gini(in_degree_original)
-        Gini_out = gini(out_degree_original)
     
         Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
         list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
@@ -99,8 +94,6 @@ def main():
         mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
         
         assortativity_values.append(assortativity)
-        Gini_in_values.append(Gini_in)
-        Gini_out_values.append(Gini_out)
        
         nodes_group_A.append(len(group_A))
         nodes_group_B.append(len(group_B))

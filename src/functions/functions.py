@@ -493,3 +493,15 @@ def get_daily_nodes(Gvac_days):
     for Gvac in Gvac_days:
         nodes_original.append(len(Gvac.nodes()))
     return nodes_original
+
+def get_daily_Gini_in_out(Gvac_days):
+    Gini_in_values = []
+    Gini_out_values = []
+    for i, Gvac in enumerate(Gvac_days):   
+        #Here we save all the users who receive retweets and the users who retweets, respectively.
+        in_degree_original, out_degree_original = degree_distributions(Gvac) 
+        Gini_in = gini(in_degree_original)
+        Gini_out = gini(out_degree_original)
+        Gini_in_values.append(Gini_in)
+        Gini_out_values.append(Gini_out)
+    return Gini_in_values, Gini_out_values
