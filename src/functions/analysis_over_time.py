@@ -74,26 +74,8 @@ def main():
     nodes_group_B_G1_weak = []
     nodes_group_A_G1_weak = []
     
+    date_store, Gvac_days = create_date_store(DIR_FILES)
     for Gvac in Gvac_days:
-        date_store, Gvac_days = create_date_store(DIR_FILES)
-    '''
-    #We create also a list in which we store the dates.
-    date_store = []
-    #We order listfiles with np.sort, i.e. the days one after the other.
-    for file in np.sort(listfiles):
-
-        if file[17:19]+'-'+file[20:22] =='02-01':
-            date_store.append(file[18:19]+'-'+file[20:22])
-        elif file[17:19] =='03':
-            date_store.append(file[18:19]+'-'+file[20:22])
-        else:
-            date_store.append(file[20:22])
-
-        #The first step is to read the edgelist.
-        Gvac=nx.read_weighted_edgelist(DIR_FILES+file,
-                                            delimiter='\t',create_using=nx.DiGraph,nodetype=str)
-
-    '''
         nodes_original.append(len(Gvac.nodes()))
     
         #Here we save all the users who receive retweets and the users who retweets, respectively.
@@ -218,9 +200,8 @@ def main():
     We define the top users of group A and group B on the basis of the total-degree (we are taking the 1%).
     '''
     df_topA = filter_top_users(df_users, 'A')
-    df_topA.to_csv(PATH_FREQUENCY+'topUsersGroupA.csv', index=False)
-    
     df_topB = filter_top_users(df_users, 'B')
+    df_topA.to_csv(PATH_FREQUENCY+'topUsersGroupA.csv', index=False)
     df_topB.to_csv(PATH_FREQUENCY+'topUsersGroupB.csv', index=False)
     
     df = read_cleaned_war_data(PATH_WAR)
@@ -228,7 +209,6 @@ def main():
     
     df_tweets_A = n_tweets_over_time(df, df_topA, 'NtweetsGroupA')
     df_tweets_B = n_tweets_over_time(df, df_topB, 'NtweetsGroupB')
-    
     df_tweets = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
     df_tweets.columns = ['Ntweets'] 
     '''
