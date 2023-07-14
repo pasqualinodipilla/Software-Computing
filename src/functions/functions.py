@@ -373,7 +373,7 @@ def n_tweets_over_time(df, df_top, label_community):
     df_tweets.columns = [label_community]
     return df_tweets
 
-def age_of_activity(Gvac, date_store, nodes_age_in, nodes_age_out):
+def age_of_activity(Gvac,i, nodes_age_in, nodes_age_out):
     '''
     In order to compute the average age of activity we have to use lists of dictionaries because I have to store the information
     of the previous day referring to that particular node. We want a list that contains the different days but within each day 
@@ -385,7 +385,7 @@ def age_of_activity(Gvac, date_store, nodes_age_in, nodes_age_out):
     day. In this case we add a day to the activity of that node;
     - we repeat the same procedure in the case of the out-degree.
     '''
-    if len(date_store)==1:
+    if i==0:
         dict_nodes_in = {}
         dict_nodes_out = {}
     #if this step is satisfied they will be equal to the last element of the nodes list.
@@ -447,19 +447,13 @@ def mixing_matrix_manipulation(df):
     df2 = df
     return df1, df2
 
-def degree_distributions(Gvac, Gvac_A, Gvac_B):
+def degree_distributions(G):
     '''
     We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and group B a
     '''
-    in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
-    out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
-    
-    in_degree_group_A = [Gvac_A.in_degree(node) for node in nx.nodes(Gvac_A)]
-    out_degree_group_A = [Gvac_A.out_degree(node) for node in nx.nodes(Gvac_A)]
-    
-    in_degree_group_B = [Gvac_B.in_degree(node) for node in nx.nodes(Gvac_B)]
-    out_degree_group_B = [Gvac_B.out_degree(node) for node in nx.nodes(Gvac_B)]
-    return in_degree_original, out_degree_original, in_degree_group_A, out_degree_group_A, in_degree_group_B, out_degree_group_B
+    in_degree = [G.in_degree(node) for node in nx.nodes(G)]
+    out_degree = [G.out_degree(node) for node in nx.nodes(G)]
+    return in_degree, out_degree 
 
 def words_frequency(df, group):
     '''
@@ -493,3 +487,9 @@ def words_frequency(df, group):
     values_list, key_list = zip(*sorted(zip(values_list,key_list)))
     
     return value_list, key_list
+
+def get_daily_nodes(Gvac_days):
+    nodes_original = []
+    for Gvac in Gvac_days:
+        nodes_original.append(len(Gvac.nodes()))
+    return nodes_original

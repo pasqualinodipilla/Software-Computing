@@ -9,6 +9,7 @@ import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
 from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time, age_of_activity, create_date_store
+from functions import degree_distributions, get_daily_nodes
 from configurations import (
     STOR_DIR,
     PATH_COM_OF_USER,
@@ -75,14 +76,11 @@ def main():
     nodes_group_A_G1_weak = []
     
     date_store, Gvac_days = create_date_store(DIR_FILES)
-    for Gvac in Gvac_days:
-        nodes_original.append(len(Gvac.nodes()))
-    
+    nodes_original = get_daily_nodes(Gvac_days)
+    for i, Gvac in enumerate(Gvac_days):   
         #Here we save all the users who receive retweets and the users who retweets, respectively.
-        in_degree_original = [Gvac.in_degree(node) for node in nx.nodes(Gvac)]
-        out_degree_original = [Gvac.out_degree(node) for node in nx.nodes(Gvac)]
-        
-        nodes_age_in, nodes_age_out = age_of_activity(Gvac, date_store, nodes_age_in, nodes_age_out)
+        in_degree_original, out_degree_original = degree_distributions(Gvac)        
+        nodes_age_in, nodes_age_out = age_of_activity(Gvac, i, nodes_age_in, nodes_age_out)
         
         '''
         In the following we evaluate assortativity coefficient and Gini index for each day, we assign the two communities 
