@@ -52,7 +52,10 @@ def main():
     We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, 
     group A and group B and we save them in a corresponding file.    
     '''
-    in_degree_original, out_degree_original, in_degree_group_A, out_degree_group_A, in_degree_group_B, out_degree_group_B = degree_distributions(Gvac, Gvac_A, Gvac_B)
+    in_degree_original, out_degree_original = degree_distributions(Gvac)
+    in_degree_group_A, out_degree_group_A = degree_distributions(Gvac_A)
+    in_degree_group_B, out_degree_group_B = degree_distributions(Gvac_B)
+    
     df_original = create_df(['in_degree_original', 'out_degree_original'],[in_degree_original, out_degree_original])
     df_original.to_csv(PATH_DEGREE+"DegreeOriginal.csv", index = False)
 main()

@@ -373,7 +373,7 @@ def n_tweets_over_time(df, df_top, label_community):
     df_tweets.columns = [label_community]
     return df_tweets
 
-def age_of_activity(Gvac,i, nodes_age_in, nodes_age_out):
+def age_of_activity(Gvac_days):
     '''
     In order to compute the average age of activity we have to use lists of dictionaries because I have to store the information
     of the previous day referring to that particular node. We want a list that contains the different days but within each day 
@@ -385,25 +385,32 @@ def age_of_activity(Gvac,i, nodes_age_in, nodes_age_out):
     day. In this case we add a day to the activity of that node;
     - we repeat the same procedure in the case of the out-degree.
     '''
-    if i==0:
-        dict_nodes_in = {}
-        dict_nodes_out = {}
-    #if this step is satisfied they will be equal to the last element of the nodes list.
-    else:
-        dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
-        dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
+    #The following lists will be lists of dictionaries in order to evaluate the
+    #average age of activity.
+    nodes_age_in = []
+    nodes_age_out = []
     
-    for node in nx.nodes(Gvac):
-        if Gvac.in_degree(node)>0:
-            dict_nodes_in.setdefault(node,0)
-            dict_nodes_in[node]+=1
-        if Gvac.out_degree(node)>0:
-            dict_nodes_out.setdefault(node,0)
-            dict_nodes_out[node]+=1
+    
+    for i, Gvac in enumerate(Gvac_days):
+        if i==0:
+            dict_nodes_in = {}
+            dict_nodes_out = {}
+        #if this step is satisfied they will be equal to the last element of the nodes list.
+        else:
+            dict_nodes_in = copy.deepcopy(nodes_age_in[-1])
+            dict_nodes_out = copy.deepcopy(nodes_age_out[-1])
+    
+        for node in nx.nodes(Gvac):
+            if Gvac.in_degree(node)>0:
+                dict_nodes_in.setdefault(node,0)
+                dict_nodes_in[node]+=1
+            if Gvac.out_degree(node)>0:
+                dict_nodes_out.setdefault(node,0)
+                dict_nodes_out[node]+=1
             
-    #here we have our lists of dictionaries.  
-    nodes_age_in.append(dict_nodes_in)
-    nodes_age_out.append(dict_nodes_out)
+        #here we have our lists of dictionaries.  
+        nodes_age_in.append(dict_nodes_in)
+        nodes_age_out.append(dict_nodes_out)
     return nodes_age_in, nodes_age_out
 
 def create_date_store(DIR_FILES):
@@ -505,3 +512,10 @@ def get_daily_Gini_in_out(Gvac_days):
         Gini_in_values.append(Gini_in)
         Gini_out_values.append(Gini_out)
     return Gini_in_values, Gini_out_values
+
+def get_daily_assortativity(Gvac_days):
+    assortativity_values = []
+    for Gvac in Gvac_days:
+        assortativity=nx.degree_assortativity_coefficient(Gvac)
+        assortativity_values.append(assortativity)    
+    return assortativity_values
