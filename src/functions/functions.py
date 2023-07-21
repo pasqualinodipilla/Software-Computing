@@ -716,3 +716,15 @@ def col_retweet_network(df, min_rt):
     df_edgelist = df_edgelist.reset_index().rename(columns={0:'weight'})
     
     return df_edgelist
+
+def compute_clustering(Gvac):
+    '''
+    Here we evaluate the clustering coefficient
+    '''
+    lcc = nx.clustering(Gvac)
+    nodes = []
+    clustering = []
+    for node in Gvac.nodes():
+        nodes.append(node)
+        clustering.append(lcc[node])
+    return nodes, clustering

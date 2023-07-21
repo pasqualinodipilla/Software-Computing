@@ -10,7 +10,7 @@ import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity, degree_distributions
 from functions import compute_connected_component, gini, mixing_matrix_manipulation, create_df
-from functions import words_frequency, sort_data, compute_betweeness
+from functions import words_frequency, sort_data, compute_betweeness, compute_clustering
 from configurations import (
     STOR_DIR,
     PATH_EDGELIST,
@@ -103,12 +103,7 @@ def main():
     '''
     Here we evaluate the clustering coefficient
     '''
-    lcc = nx.clustering(Gvac)
-    nodes = []
-    clustering = []
-    for node in Gvac.nodes():
-        nodes.append(node)
-        clustering.append(lcc[node])
+    nodes, clustering= compute_clustering(Gvac)
         
     df_clustering = create_df(['Nodes', 'Clustering coefficient'],[nodes, clustering])
     df_clust_indegree = create_df(['In-degree', 'Clustering coefficient'],[in_degree_original, clustering])
