@@ -44,11 +44,6 @@ def main():
     df4.to_csv(PATH_MIXING_MATRIX+'MixingVaccine6.csv', index=False)
     
     '''
-    Number of nodes belonging to the communities in the original vaccine network.
-    '''
-    Counter(list(com_of_user.values())) 
-    
-    '''
     We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, 
     group A and group B and we save them in a corresponding file.    
     '''

@@ -10,7 +10,7 @@ from functions import assign_communities, mixing_matrix, randomize_network, comp
 from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
 from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time, age_of_activity, create_date_store
 from functions import degree_distributions, get_daily_nodes, get_daily_Gini_in_out, get_daily_assortativity, get_daily_modularity
-from functions import get_daily_components
+from functions import get_daily_components, n_tweets_over_time_selected_community
 from configurations import (
     STOR_DIR,
     PATH_COM_OF_USER,
@@ -51,8 +51,7 @@ def main():
     mod_unweighted_file, mod_weighted_file, random_mod_unweighted_file, random_mod_weighted_file, nodes_group_A, nodes_group_B = get_daily_modularity(Gvac_days, com_of_user)
     nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak= get_daily_components(Gvac_days, com_of_user)
    
-    We create a set of dataframes and we save them in order to perform the plots in Plot_Graph.ipynb.
-    
+    '''
     In the following 2 dataframes we store firstly for the strong components and then for the weak components the dates 
     (date_store), the nodes of group A belonging to the first connected component, the nodes of group B belonging to the
     first connected component, the nodes of group A belonging to the second connected component, the nodes of group B belonging
@@ -126,10 +125,9 @@ def main():
     df = read_cleaned_war_data(PATH_WAR)
     df.to_csv(PATH_FREQUENCY+'totalNofRetweets.csv.gz', index=False, compression='gzip')
     
-    df_tweets_A = n_tweets_over_time(df, df_topA, 'NtweetsGroupA')
-    df_tweets_B = n_tweets_over_time(df, df_topB, 'NtweetsGroupB')
-    df_tweets = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['created_at']]
-    df_tweets.columns = ['Ntweets'] 
+    df_tweets_A = n_tweets_over_time_selected_community(df, df_topA, 'NtweetsGroupA')
+    df_tweets_B = n_tweets_over_time_selected_community(df, df_topB, 'NtweetsGroupB')
+    df_tweets = n_tweets_over_time(df)
     '''
     In order to join together the three dataframes we use an outer join: in the left join we took as reference only the dataframe 
     on the 'left part' and we took into account only the indexes of the dataframe on the 'left part'. With the outer join we take

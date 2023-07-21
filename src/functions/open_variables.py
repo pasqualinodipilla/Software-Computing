@@ -49,12 +49,19 @@ def main():
     '''
     # Set the minimum the weight threshold for edges to be considered (1 is the 
     #minimum -> keep edges with at least 1 retweet from the users)
-    min_rt=1
+    min_rt=1 #va in configuration file
+    
+    list_col = ['user.id','retweeted_status.user.id']
+    df_edgelist=df[list_col].copy()
+    df_edgelist=df_edgelist.dropna(how='any')
+    df_edgelist=df_edgelist.groupby(list_col).size()
+    df_edgelist = df_edgelist.reset_index().rename(columns={0:'weight'})
+    
+    '''
     df_edgelist=df[['user.id','retweeted_status.user.id']].copy()
     df_edgelist=df_edgelist.dropna(how='any')
     df_edgelist=df_edgelist.groupby(df_edgelist.columns.tolist()).size().reset_index().rename(
         columns={0:'weight'})
-    #print('Edgelist: ',df_edgelist.shape)
     df_edgelist=df_edgelist[df_edgelist.weight>=min_rt]
-    #print('\nEdgelist weight{}: '.format(min_rt),df_edgelist.shape)
+    '''
     df_edgelist.to_csv('data/edgelist_w{}.txt'.format(min_rt), header=None, index=None, sep='\t')

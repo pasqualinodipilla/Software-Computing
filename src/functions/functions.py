@@ -197,7 +197,7 @@ def compute_randomized_modularity(Gvac_subgraph, group_A, group_B):
         #print(datetime.datetime.now()-start_time)
     return list_modularity_unweighted, list_modularity_weighted
 
-def compute_connected_component(Gvac_subgraph, group_A, group_B):
+def compute_connected_component(Gvac_subgraph, group_A, group_B, weak_or_strong):
     '''
     Function that returns G0 and G1 that will include the nodes of group A or group B belonging to the first and second strongly
     connected component, being the first strongly connected component G0, the second strongly connected component G1 and four
@@ -223,7 +223,12 @@ def compute_connected_component(Gvac_subgraph, group_A, group_B):
     :return G1: A generator of sets of nodes, one for each strongly connected component 
     of Gvac_subgraph, in this case the second one.
     '''
-    Gcc = sorted(nx.strongly_connected_components(Gvac_subgraph), key=len, reverse=True)
+    if weak_or_strong == "strong":
+        Gcc = sorted(nx.strongly_connected_components(Gvac_subgraph), key=len, reverse=True)
+    elif weak_or_strong == "weak":
+        Gcc = sorted(nx.weakly_connected_components(Gvac_subgraph), key=len, reverse=True)
+    else:
+        raise ValueError("weak_or_strong parameter should be either strong or weak.")
     G0 = Gvac_subgraph.subgraph(Gcc[0])
     G1 = Gvac_subgraph.subgraph(Gcc[1])
     
@@ -233,7 +238,8 @@ def compute_connected_component(Gvac_subgraph, group_A, group_B):
     group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
     return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
 
-def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
+
+#def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
     '''
     Function that returns G0 and G1 that will include the nodes of group A or group B belonging to the first and second strongly 
     connected component, being the first strongly connected component G0, the second strongly connected component G1 and four
@@ -258,6 +264,7 @@ def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
     :return G1: A generator of sets of nodes, one for each weakly connected component 
     of Gvac_subgraph, in this case the second one.
     '''
+    '''
     Gcc = sorted(nx.weakly_connected_components(Gvac_subgraph), key=len, reverse=True)
     G0 = Gvac_subgraph.subgraph(Gcc[0])
     G1 = Gvac_subgraph.subgraph(Gcc[1])
@@ -267,7 +274,7 @@ def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
     group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
     return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
 
-
+    '''
 def compute_strong_or_weak_components(Gvac_subgraph, group_A, group_B, isweak):
     '''
     This function allows to choose if we have to deal with the strongly or weakly connected components and gives in output the
@@ -315,7 +322,36 @@ def gini(x):
         return total
     else:
         return 0
+    
+def compute_betweeness(G0, G0_weak):
+    betweenness = nx.betweenness_centrality(G0, k=500)
+    betweenness_weak = nx.betweenness_centrality(G0_weak, k=60)
+    in_degree_G0 = [G0.in_degree(node) for node in nx.nodes(G0)]
+    out_degree_G0 = [G0.out_degree(node) for node in nx.nodes(G0)]
+    in_degree_G0_weak = [G0_weak.in_degree(node) for node in nx.nodes(G0_weak)]
+    out_degree_G0_weak = [G0_weak.out_degree(node) for node in nx.nodes(G0_weak)]
+    
+    return betweenness, betweenness_weak, in_degree_G0, out_degree_G0, in_degree_G0_weak, out_degree_G0_weak
+    
+    
+def sort_data(G0, betweenness):
+    nodes = []
+    in_degreeG0 = []
+    out_degreeG0 = []
+    betweenessG0 = []
+    
+    for node in G0.nodes():
+        nodes.append(node)
+        in_degreeG0.append(G0.in_degree(node))
+        out_degreeG0.append(G0.out_degree(node))
+        betweenessG0.append(betweenness[node])
+    
+    #The zip() function takes the iterables, aggregates them in a tuple, and returns it.
+    #The sorted() function sorts all the elements of the tuple in ascending order.
+    nodes, in_degreeG0, out_degreeG0, betweenessG0 = zip(*sorted(zip(nodes,in_degreeG0,out_degreeG0,betweenessG0)))
+    return nodes, in_degreeG0, out_degreeG0, betweenessG0
 
+    
 def create_df(col_names, lists):
     '''
     This function creates a dataframe.
@@ -367,7 +403,7 @@ def read_cleaned_war_data(PATH_WAR):
     df=df.rename(columns={'user.id': 'user'})
     return df
     
-def n_tweets_over_time(df, df_top, label_community):
+def n_tweets_over_time_selected_community(df, df_top, label_community):
     '''
     Function where we create a dataframe in which we have group A or B over time: we use a 'left join' where the reference is the
     user we are interested in and on the other side we have the time during which he's active. Our goal is to establish it there
@@ -382,9 +418,18 @@ def n_tweets_over_time(df, df_top, label_community):
     return df_tweets: dataframe containing the number of tweets over time.
     '''
     dGroup_time = df_top.set_index('user').join(df.set_index('user'))
-    df_tweets = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))].groupby('created_at_days').count()[['community']]
+    dGroup_time = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))]
+    df_tweets = dGroup_time.groupby('created_at_days').count()[['community']]
     df_tweets.columns = [label_community]
     return df_tweets
+
+def n_tweets_over_time(df):
+    df_tweets_minus_last_day = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))]
+    df_tweets = df_tweets_minus_last_day.groupby('created_at_days').count()[['created_at']]
+    df_tweets.columns = ['Ntweets'] 
+    return df_tweets
+    
+    
 
 def age_of_activity(Gvac_days):
     '''
@@ -528,7 +573,7 @@ def words_frequency(df, group):
     values_list = [counterToken[key] for key in key_list]
     values_list, key_list = zip(*sorted(zip(values_list,key_list)))
     
-    return value_list, key_list
+    return values_list, key_list
 
 def get_daily_nodes(Gvac_days):
     '''
@@ -661,3 +706,4 @@ def get_daily_components(Gvac_days, com_of_user):
         nodes_group_B_G1_weak.append(nodes_group_B_G1_weak_1)
         
     return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak
+
