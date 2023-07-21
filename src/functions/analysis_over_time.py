@@ -9,7 +9,8 @@ import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
 from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
 from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time, age_of_activity, create_date_store
-from functions import degree_distributions, get_daily_nodes, get_daily_Gini_in_out, get_daily_assortativity
+from functions import degree_distributions, get_daily_nodes, get_daily_Gini_in_out, get_daily_assortativity, get_daily_modularity
+from functions import get_daily_components
 from configurations import (
     STOR_DIR,
     PATH_COM_OF_USER,
@@ -37,90 +38,19 @@ components in order to find out if the giant component is made up of users belon
 
 def main():
     '''
-    We read the data of the "war network" by considering the same communities of the "vaccine network" in order to find out if
-    the two networks share the same clusterization or not, or in other terms, to understand if the users belonging to a certain
-    community share a similar opinion about the two topics or not.
+    We read the data of the "war network" by considering the same communities of the "vaccine network" 
     '''
     with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f:
         com_of_user=pickle.load(f)
-    
-    #listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
-    #let's create lists in which we save the information we need
-    mod_unweighted_file = []
-    mod_weighted_file = []
-    random_mod_unweighted_file = []
-    random_mod_weighted_file = []
-    #In the following list we save all the nodes belonging to our war network.
-    nodes_original = []
-    #Here we save the nodes belonging to a single community of the war network, 
-    #where the communities are
-    #taken from the vaccine network.
-    nodes_group_A = []
-    nodes_group_B = []
-    #The following lists will be lists of dictionaries in order to evaluate the
-    #average age of activity.
-    #nodes_age_in = []
-    #nodes_age_out = []
-    
-    nodes_group_A_G0 = []
-    nodes_group_B_G0 = []
-    nodes_group_A_G1 = []
-    nodes_group_B_G1 = []
-    
-    nodes_group_A_G0_weak = []
-    nodes_group_B_G0_weak = []
-    nodes_group_B_G1_weak = []
-    nodes_group_A_G1_weak = []
     
     date_store, Gvac_days = create_date_store(DIR_FILES)
     nodes_original = get_daily_nodes(Gvac_days)
     Gini_in_values, Gini_out_values = get_daily_Gini_in_out(Gvac_days)
     assortativity_values = get_daily_assortativity(Gvac_days)
     nodes_age_in, nodes_age_out = age_of_activity(Gvac_days)
-    for i, Gvac in enumerate(Gvac_days):         
-        #nodes_age_in, nodes_age_out = age_of_activity(Gvac, i, nodes_age_in, nodes_age_out)
-        
-        '''
-        In the following we evaluate assortativity coefficient and Gini index for each day, we assign the two communities 
-        A and B and  we evaluate the modularity of the real network and the randomized one.
-        '''
-    
-        Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user) #gvacA, gvacB non lo usiamo
-        list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph,
-                                                                                          group_A,
-                                                                                          group_B)
-        mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
-        mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
-        
-        nodes_group_A.append(len(group_A))
-        nodes_group_B.append(len(group_B))
-        
-        mod_unweighted_file.append(mod_unweighted)
-        mod_weighted_file.append(mod_weighted)
-        random_mod_unweighted_file.append(list_modularity_unweighted)
-        random_mod_weighted_file.append(list_modularity_weighted)    
-        
-        
-        '''
-        We choose to compute the first two strongly connected components including nodes belonging to group A or to group B, or
-        to compute first two weakly connected components including nodes belonging to group A or to group B.
-        '''
-        isweak = False
-        nodes_group_A_G0_1, nodes_group_B_G0_1, nodes_group_A_G1_1, nodes_group_B_G1_1 = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
-        nodes_group_A_G0.append(nodes_group_A_G0_1)
-        nodes_group_B_G0.append(nodes_group_B_G0_1)
-        nodes_group_A_G1.append(nodes_group_A_G1_1)
-        nodes_group_B_G1.append(nodes_group_B_G1_1)
-        
-        isweak = True
-        nodes_group_A_G0_weak_1, nodes_group_B_G0_weak_1, nodes_group_A_G1_weak_1, nodes_group_B_G1_weak_1 = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
-        
-        nodes_group_A_G0_weak.append(nodes_group_A_G0_weak_1)
-        nodes_group_B_G0_weak.append(nodes_group_B_G0_weak_1)
-        nodes_group_A_G1_weak.append(nodes_group_A_G1_weak_1)
-        nodes_group_B_G1_weak.append(nodes_group_B_G1_weak_1)
-    
-    '''
+    mod_unweighted_file, mod_weighted_file, random_mod_unweighted_file, random_mod_weighted_file, nodes_group_A, nodes_group_B = get_daily_modularity(Gvac_days, com_of_user)
+    nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak= get_daily_components(Gvac_days, com_of_user)
+   
     We create a set of dataframes and we save them in order to perform the plots in Plot_Graph.ipynb.
     
     In the following 2 dataframes we store firstly for the strong components and then for the weak components the dates 
@@ -172,6 +102,7 @@ def main():
     we read them, the list containing the community to which each node belongs, the lists with the corresponding in-degree and
     out-degree.
     '''   
+    Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
     nodes = [node for node in nx.nodes(Gvac_subgraph)]
     community = [Gvac_subgraph.nodes[node]["community"] for node in nodes]
     in_degree = [Gvac_subgraph.in_degree(node) for node in nodes]
