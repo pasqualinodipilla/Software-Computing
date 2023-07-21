@@ -7,7 +7,7 @@ import os
 from collections import Counter 
 import copy
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity
-from functions import compute_connected_component, compute_weak_connected_component, gini, compute_strong_or_weak_components
+from functions import compute_connected_component, gini
 from functions import create_df, filter_top_users, read_cleaned_war_data, n_tweets_over_time, age_of_activity, create_date_store
 from functions import degree_distributions, get_daily_nodes, get_daily_Gini_in_out, get_daily_assortativity, get_daily_modularity
 from functions import get_daily_components, n_tweets_over_time_selected_community
@@ -101,7 +101,8 @@ def main():
     we read them, the list containing the community to which each node belongs, the lists with the corresponding in-degree and
     out-degree.
     '''   
-    Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
+    for Gvac in Gvac_days:
+        Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
     nodes = [node for node in nx.nodes(Gvac_subgraph)]
     community = [Gvac_subgraph.nodes[node]["community"] for node in nodes]
     in_degree = [Gvac_subgraph.in_degree(node) for node in nodes]

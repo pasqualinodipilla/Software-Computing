@@ -3,7 +3,7 @@ import networkx as nx
 import pickle
 from collections import Counter 
 from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity, create_df
-from functions import compute_connected_component, compute_weak_connected_component, gini, mixing_matrix_manipulation
+from functions import compute_connected_component, gini, mixing_matrix_manipulation
 from functions import degree_distributions
 from configurations import (
     STOR_DIR,

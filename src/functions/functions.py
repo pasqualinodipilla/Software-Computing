@@ -132,12 +132,13 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
         #we repeat this command 5 times
         for j in range (int(edge_weight[edge])):
             list_edges.append(edge)
-    i=0
+    #i=0
 
     #Let's create an array of indexes in which each index corresponds to an element of list_edges
     array_index = np.arange(len(list_edges))
     #specify random seed
     np.random.seed(seed)
+    '''
     while(i<n_swaps):
         #We choose two indexes randomly
         edges_to_swap = np.random.choice(array_index,2)
@@ -157,6 +158,8 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
     #By using Counter(), which counts the number of times an element appears in a list, 
     #we redefine the edge weight    
     edge_weight = Counter(list_edges)
+    '''
+    list_edges, edge_weight = swapping(n_swaps, array_index, list_edges)
     
     #We create the randomized network and we evaluate the modularity in the unweighted 
     #and weighted cases.
@@ -166,6 +169,29 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
     modularity_weighted = nx.community.modularity(Gvac_shuffle, 
                                                   [group_A,group_B], weight = 'weight')
     return modularity_unweighted, modularity_weighted, Gvac_shuffle
+
+def swapping(n_swaps, array_index, list_edges):
+    i=0
+    while(i<n_swaps):
+        #We choose two indexes randomly
+        edges_to_swap = np.random.choice(array_index,2)
+        edge_1 = list_edges[edges_to_swap[0]]
+        edge_2 = list_edges[edges_to_swap[1]]
+    
+        #We have to verify that all the nodes belonging to these edges are different.
+        nodes = [edge_1[0],edge_1[1], edge_2[0], edge_2[1]]
+        if len(set(nodes))==4:
+            newedge_1 = (edge_1[0],edge_2[1])
+            newedge_2 = (edge_2[0],edge_1[1])
+            #Let's change the edges in listedges
+            list_edges[edges_to_swap[0]]=newedge_1
+            list_edges[edges_to_swap[1]]=newedge_2
+            
+            i = i+1
+    #By using Counter(), which counts the number of times an element appears in a list, 
+    #we redefine the edge weight    
+    edge_weight = Counter(list_edges)
+    return list_edges, edge_weight
 
 def compute_randomized_modularity(Gvac_subgraph, group_A, group_B):
     '''
@@ -238,69 +264,6 @@ def compute_connected_component(Gvac_subgraph, group_A, group_B, weak_or_strong)
     group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
     return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
 
-
-#def compute_weak_connected_component(Gvac_subgraph, group_A, group_B):
-    '''
-    Function that returns G0 and G1 that will include the nodes of group A or group B belonging to the first and second strongly 
-    connected component, being the first strongly connected component G0, the second strongly connected component G1 and four
-    lists group_A_G0, group_B_G0, group_A_G1, group_B_G1 which contain the users of group A and group B belonging to the first or
-    second strongly connected component, giving in input the subgraph Gvac_subgraph (that will be obtained from
-    Assign_Communities) and two lists (that will contain the users belonging to group A or group B).
-    
-    :param Gvac_subgraph: subgraph of G in networkX format containing the nodes belonging to group A and group B with a degree>0
-    :param group_A: list of strings containing the Id users of group A.
-    :param group_B: list of strings containing the Id users of group B.
-    
-    :return group_A_G0: list of strings containing the Id users of group A belonging to the 
-    first weakly connected component.
-    :return group_B_G0: list of strings containing the Id users of group B belonging to the 
-    first weakly connected component.
-    :return group_A_G1: list of strings containing the Id users of group A belonging to the 
-    second weakly connected component.
-    :return group_B_G1: list of strings containing the Id users of group B belonging to the 
-    second weakly connected component.
-    :return G0: A generator of sets of nodes, one for each weakly connected component 
-    of Gvac_subgraph, in this case the first one.
-    :return G1: A generator of sets of nodes, one for each weakly connected component 
-    of Gvac_subgraph, in this case the second one.
-    '''
-    '''
-    Gcc = sorted(nx.weakly_connected_components(Gvac_subgraph), key=len, reverse=True)
-    G0 = Gvac_subgraph.subgraph(Gcc[0])
-    G1 = Gvac_subgraph.subgraph(Gcc[1])
-    group_A_G0 = list(set(group_A) & set(list(G0.nodes())))
-    group_B_G0 = list(set(group_B) & set(list(G0.nodes())))
-    group_A_G1 = list(set(group_A) & set(list(G1.nodes())))
-    group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
-    return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
-
-    '''
-def compute_strong_or_weak_components(Gvac_subgraph, group_A, group_B, isweak):
-    '''
-    This function allows to choose if we have to deal with the strongly or weakly connected components and gives in output the
-    lenght of the outputs of the corresponding functions.
-    
-    param Gvac_subgraph: subgraph of G in networkX format containing the nodes belonging to group A and group B with a degree>0
-    param group_A: list of strings containing the Id users of group A.
-    param group_B: list of strings containing the Id users of group A.
-    param isweak: Python bool variable
-    
-    return len(x[0]): lenght of the first element among the outuputs of compute_weak_connected_component or
-    compute_connected_component
-    return len(x[1]): lenght of the second element among the outuputs of compute_weak_connected_component or
-    compute_connected_component
-    return len(x[2]): lenght of the third element among the outuputs of compute_weak_connected_component or
-    compute_connected_component
-    return len(x[2]): lenght of the fourth element among the outuputs of compute_weak_connected_component or
-    compute_connected_component
-    '''
-    if isweak:
-        x = compute_weak_connected_component(Gvac_subgraph, group_A, group_B)
-    else:
-        x = compute_connected_component(Gvac_subgraph, group_A, group_B)
-    return len(x[0]), len(x[1]), len(x[2]), len(x[3])
-    
-    
 def gini(x): 
     '''
     Function returning the Gini coefficient on a list x.
@@ -689,22 +652,19 @@ def get_daily_components(Gvac_days, com_of_user):
     
     for Gvac in Gvac_days:
         Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
+        nodes_group_A_G0_1, nodes_group_B_G0_1, nodes_group_A_G1_1, nodes_group_B_G1_1, G0,G1 = compute_connected_component(Gvac_subgraph, group_A, group_B, 'strong')
+        nodes_group_A_G0_weak_1, nodes_group_B_G0_weak_1, nodes_group_A_G1_weak_1, nodes_group_B_G1_weak_1, G0_weak, G1_weak = compute_connected_component(Gvac_subgraph, group_A, group_B, 'weak')
         
-        isweak = False
-        nodes_group_A_G0_1, nodes_group_B_G0_1, nodes_group_A_G1_1, nodes_group_B_G1_1 = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
-        nodes_group_A_G0.append(nodes_group_A_G0_1)
-        nodes_group_B_G0.append(nodes_group_B_G0_1)
-        nodes_group_A_G1.append(nodes_group_A_G1_1)
-        nodes_group_B_G1.append(nodes_group_B_G1_1)
+        nodes_group_A_G0.append(len(nodes_group_A_G0_1))
+        nodes_group_B_G0.append(len(nodes_group_B_G0_1))
+        nodes_group_A_G1.append(len(nodes_group_A_G1_1))
+        nodes_group_B_G1.append(len(nodes_group_B_G1_1))
         
-        isweak = True
-        nodes_group_A_G0_weak_1, nodes_group_B_G0_weak_1, nodes_group_A_G1_weak_1, nodes_group_B_G1_weak_1 = compute_strong_or_weak_components(Gvac_subgraph,group_A,group_B, isweak)
-        
-        nodes_group_A_G0_weak.append(nodes_group_A_G0_weak_1)
-        nodes_group_B_G0_weak.append(nodes_group_B_G0_weak_1)
-        nodes_group_A_G1_weak.append(nodes_group_A_G1_weak_1)
-        nodes_group_B_G1_weak.append(nodes_group_B_G1_weak_1)
-        
+        nodes_group_A_G0_weak.append(len(nodes_group_A_G0_weak_1))
+        nodes_group_B_G0_weak.append(len(nodes_group_B_G0_weak_1))
+        nodes_group_A_G1_weak.append(len(nodes_group_A_G1_weak_1))
+        nodes_group_B_G1_weak.append(len(nodes_group_B_G1_weak_1))
+      
     return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak
 
 def col_retweet_network(df, min_rt):
