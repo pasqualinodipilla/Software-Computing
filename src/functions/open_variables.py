@@ -5,7 +5,8 @@ from configurations import (
     STOR_DIR,
     PATH_VACCINE,
     PATH_COM_OF_USER,
-    PATH_UKRAINE
+    PATH_UKRAINE,
+    min_rt
 )
 
 
@@ -49,7 +50,6 @@ def main():
     '''
     # Set the minimum the weight threshold for edges to be considered (1 is the 
     #minimum -> keep edges with at least 1 retweet from the users)
-    min_rt=1 #va in configuration file
     
     list_col = ['user.id','retweeted_status.user.id']
     df_edgelist=df[list_col].copy()

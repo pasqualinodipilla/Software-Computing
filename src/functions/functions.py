@@ -14,7 +14,7 @@ import datetime
 import string
 import copy
 from sklearn.metrics import roc_auc_score
-from configurations import SEED, top_user_fraction, PATH_WAR, DIR_FILES
+from configurations import SEED, top_user_fraction, PATH_WAR, DIR_FILES, min_rt
 
 def assign_communities(G, com_of_user):
     '''
@@ -707,3 +707,12 @@ def get_daily_components(Gvac_days, com_of_user):
         
     return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak
 
+def col_retweet_network(df, min_rt):
+    
+    list_col = ['user.id','retweeted_status.user.id']
+    df_edgelist=df[list_col].copy()
+    df_edgelist=df_edgelist.dropna(how='any')
+    df_edgelist=df_edgelist.groupby(list_col).size()
+    df_edgelist = df_edgelist.reset_index().rename(columns={0:'weight'})
+    
+    return df_edgelist
