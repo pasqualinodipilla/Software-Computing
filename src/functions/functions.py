@@ -396,6 +396,10 @@ def n_tweets_over_time(df):
 
 def age_of_activity(Gvac_days):
     '''
+    The age is defined in the following way: age 0 is referred to the 1st day (all users have age 0). During the second day there 
+    will be users that have age 1, since a day passed, and new users that will have age 0, and so on. So, after the second day
+    there will be some users of the first day that are active or not, there will be some new users and there will be some users
+    that had not been active at all.
     In order to compute the average age of activity we have to use lists of dictionaries because I have to store the information
     of the previous day referring to that particular node. We want a list that contains the different days but within each day 
     we want to maintain the track of each user because or I have to add a new user or I have to consider a user who was active 
@@ -668,7 +672,6 @@ def get_daily_components(Gvac_days, com_of_user):
     return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak
 
 def col_retweet_network(df, min_rt):
-    
     list_col = ['user.id','retweeted_status.user.id']
     df_edgelist=df[list_col].copy()
     df_edgelist=df_edgelist.dropna(how='any')

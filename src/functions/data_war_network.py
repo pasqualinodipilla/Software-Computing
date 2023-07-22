@@ -1,16 +1,22 @@
 import pandas as pd
 import networkx as nx
 import pickle
-from collections import Counter 
 from scipy import stats
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-import string
-from sklearn.feature_extraction.text import TfidfVectorizer
-from functions import assign_communities, mixing_matrix, randomize_network, compute_randomized_modularity, degree_distributions
-from functions import compute_connected_component, gini, mixing_matrix_manipulation, create_df
-from functions import words_frequency, sort_data, compute_betweeness, compute_clustering
+from functions import (
+    assign_communities,
+    mixing_matrix,
+    degree_distributions,
+    compute_connected_component,
+    mixing_matrix_manipulation,
+    create_df,
+    words_frequency,
+    sort_data,
+    compute_betweeness,
+    compute_clustering
+)
 from configurations import (
     STOR_DIR,
     PATH_EDGELIST,
@@ -35,9 +41,9 @@ def main():
     df, df_weight = mixing_matrix(Gvac, com_of_user) #mixing matrix in unweighted and weighted case
     df1, df2 = mixing_matrix_manipulation(df)
     df3, df4 = mixing_matrix_manipulation(df_weight)
-    '''
-    I save a file for each table.
-    '''
+    
+    #I save a file for each table.
+    
     df.to_csv(PATH_MIXING_MATRIX+'MixingWar1.csv', index=False)
     df1.to_csv(PATH_MIXING_MATRIX+'MixingWar2.csv', index=False)
     df2.to_csv(PATH_MIXING_MATRIX+'MixingWar3.csv', index=False)
@@ -49,10 +55,10 @@ def main():
     for node in nx.nodes(Gvac):
         com_of_usersWar[node]=com_of_user[node]    
     
-    '''
-    We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and group B and we save
-    them in a corresponding file.
-    '''
+   
+    #We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and B and we save them in
+    #a corresponding file.
+    
     in_degree_original, out_degree_original = degree_distributions(Gvac)
     in_degree_group_A, out_degree_group_A = degree_distributions(Gvac_A)
     in_degree_group_B, out_degree_group_B = degree_distributions(Gvac_B)
@@ -65,19 +71,14 @@ def main():
     df_degree_group_A.to_csv(PATH_DEGREE_WAR+"DegreeGroupA.csv", index = False)
     df_degree_group_B.to_csv(PATH_DEGREE_WAR+"DegreeGroupB.csv", index = False)
     
-    '''
-    We call the following two functions to get the nodes of group A or group B belonging to the first and second strong (weak)
-    connected component, the first strong (weak) connected component G0 and the second strong (weak) connected component G1.
-    After that we need an undirected representation of the digraph in order to compute the betweeness.
-    '''
+    #We call compute the nodes of group A and B belonging to the first and second strong (weak) connected components, the first
+    #strong (weak) connected component G0 and the second strong (weak) connected component G1.
+    
     group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(Gvac_subgraph,group_A,group_B, 'strong')
     (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak, G0_weak, G1_weak)= compute_connected_component(Gvac_subgraph,group_A,group_B, 'weak')
     betweenness, betweenness_weak, in_degree_G0, out_degree_G0, in_degree_G0_weak, out_degree_G0_weak = compute_betweeness(G0, G0_weak)
     
-    '''
-    In order to plot betweeness vs in-degree and betweeness vs out-degree we have to sort the
-    data in the same order.
-    '''
+    #In order to plot betweeness vs in-degree and betweeness vs out-degree we have to sort the data in the same order.
     
     nodes, in_degreeG0, out_degreeG0, betweenessG0 = sort_data(G0, betweenness)
     nodesW, in_degreeG0_weak, out_degreeG0_weak, betweenessG0_weak = sort_data(G0_weak, betweenness_weak)
@@ -100,9 +101,8 @@ def main():
     df_C.to_csv(DATA_BETWEENESS+'PanelC.csv', index=False)
     df_D.to_csv(DATA_BETWEENESS+'PanelD.csv', index=False)
     
-    '''
-    Here we evaluate the clustering coefficient
-    '''
+    #We evaluate the clustering coefficient
+    
     nodes, clustering= compute_clustering(Gvac)
         
     df_clustering = create_df(['Nodes', 'Clustering coefficient'],[nodes, clustering])
@@ -113,9 +113,8 @@ def main():
     df_clust_indegree.to_csv(DATA_CLUSTERING+'ClusteringInDegree.csv', index=False)
     df_clust_outdegree.to_csv(DATA_CLUSTERING+'ClusteringOutDegree.csv',index=False)
     
-    '''
-    Here we read the file with all the retweets and we store it in df.
-    ''' 
+    #Here we read the file with all the retweets and we store it in df and we get the most frequently words used.
+    
     df = pd.read_pickle(PATH_WAR, compression='gzip')
     
     nltk.download('stopwords')
