@@ -112,8 +112,8 @@ def mixing_matrix(G, com_of_user):
 
 def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
     '''
-    This function creates a random network and compute the modularity in the unweighted and weighted case, taking in input the
-    number of swaps, the graph Gvac and the lists containing the users belonging to group A or group B.
+    This function creates a random network and compute the modularity in the unweighted and weighted case, taking in input a
+    seed, the number of swaps, the graph Gvac and the lists containing the users belonging to group A or group B.
     
     :param n_swaps: integer number representing the number of swaps.
     :param Gvac: network in networkX format.
@@ -138,27 +138,6 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
     array_index = np.arange(len(list_edges))
     #specify random seed
     np.random.seed(seed)
-    '''
-    while(i<n_swaps):
-        #We choose two indexes randomly
-        edges_to_swap = np.random.choice(array_index,2)
-        edge_1 = list_edges[edges_to_swap[0]]
-        edge_2 = list_edges[edges_to_swap[1]]
-    
-        #We have to verify that all the nodes belonging to these edges are different.
-        nodes = [edge_1[0],edge_1[1], edge_2[0], edge_2[1]]
-        if len(set(nodes))==4:
-            newedge_1 = (edge_1[0],edge_2[1])
-            newedge_2 = (edge_2[0],edge_1[1])
-            #Let's change the edges in listedges
-            list_edges[edges_to_swap[0]]=newedge_1
-            list_edges[edges_to_swap[1]]=newedge_2
-            
-            i = i+1
-    #By using Counter(), which counts the number of times an element appears in a list, 
-    #we redefine the edge weight    
-    edge_weight = Counter(list_edges)
-    '''
     list_edges, edge_weight = swapping(n_swaps, array_index, list_edges)
     
     #We create the randomized network and we evaluate the modularity in the unweighted 
@@ -171,6 +150,15 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
     return modularity_unweighted, modularity_weighted, Gvac_shuffle
 
 def swapping(n_swaps, array_index, list_edges):
+    '''
+    This function performs the swapping of the edges in order to obtain the shuffled network.
+    param: integer number representing the number of swaps.
+    param list_edges: list where we take into account any possible repetition of the edges.
+    param array_index: array of indexes in which each index corresponds to an element of list_edges
+    
+    return list_edges: list where we take into account any possible repetition of the edges.
+    return edge_weight: dictionary having as key the edge and as value the number of times it appears.
+    '''
     i=0
     while(i<n_swaps):
         #We choose two indexes randomly
@@ -226,10 +214,10 @@ def compute_randomized_modularity(Gvac_subgraph, group_A, group_B):
 def compute_connected_component(Gvac_subgraph, group_A, group_B, weak_or_strong):
     '''
     Function that returns G0 and G1 that will include the nodes of group A or group B belonging to the first and second strongly
-    connected component, being the first strongly connected component G0, the second strongly connected component G1 and four
-    lists group_A_G0, group_B_G0, group_A_G1, group_B_G1 which contain the users of group A and group B belonging to the first or
-    second strongly connected component, giving in input the subgraph Gvac_subgraph (that will be obtained from
-    Assign_Communities) and two lists (that will contain the users belonging to group A or group B).
+    (or weakly) connected component, being the first strongly (or weakly) connected component G0, the second strongly (or weakly)
+    connected component G1 and four lists group_A_G0, group_B_G0, group_A_G1, group_B_G1 which contain the users of group A and 
+    group B belonging to the first or second strongly (or weakly) connected component, giving in input the subgraph Gvac_subgraph
+    (that will be obtained from Assign_Communities) and two lists (that will contain the users belonging to group A or group B).
     
     :param Gvac_subgraph: subgraph of G in networkX format containing the nodes belonging 
     to group A and group B with a degree>0
@@ -237,16 +225,16 @@ def compute_connected_component(Gvac_subgraph, group_A, group_B, weak_or_strong)
     :param group_B: list of strings containing the Id users of group B.
     
     :return group_A_G0: list of strings containing the Id users of group A belonging to the 
-    first strongly connected component.
+    first strongly (or weakly) connected component.
     :return group_B_G0: list of strings containing the Id users of group B belonging to the 
-    first strongly connected component.
+    first strongly (or weakly)connected component.
     :return group_A_G1: list of strings containing the Id users of group A belonging to the 
-    second strongly connected component.
+    second strongly (or weakly) connected component.
     :return group_B_G1: list of strings containing the Id users of group B belonging to the 
-    second strongly connected component.
-    :return G0: A generator of sets of nodes, one for each strongly connected component 
+    second strongly (or weakly) connected component.
+    :return G0: A generator of sets of nodes, one for each strongly (or weakly) connected component 
     of Gvac_subgraph, in this case the first one.
-    :return G1: A generator of sets of nodes, one for each strongly connected component 
+    :return G1: A generator of sets of nodes, one for each strongly (or weakly) connected component 
     of Gvac_subgraph, in this case the second one.
     '''
     if weak_or_strong == "strong":
@@ -287,6 +275,22 @@ def gini(x):
         return 0
     
 def compute_betweeness(G0, G0_weak):
+    '''
+    This function computes the betweeness centrality by considering the first strongly and weakly connected components; in
+    addition it returns four lists representing the in- out-degree for the first strongly and weakly connected components.
+    
+    param G0: subgraph of G in networkX format containing the nodes belonging to the first strongly connected component.
+    param G0_weak: subgraph of G in networkX format containing the nodes belonging to the first weakly connected component.
+    
+    return betweenness: dictionary of nodes with betweenness centrality as the value, in the case of the first strongly 
+    connected component.
+    return betweenness_weak: dictionary of nodes with betweenness centrality as the value, in the case of the first weakly
+    connected component.
+    return in_degree_G0: list containing the in-degree for the nodes of the first strongly connected component.
+    return out_degree_G0: list containing the out-degree for the nodes of the first strongly connected component.
+    return in_degree_G0_weak: list containing the in-degree for the nodes of the first weakly connected component.
+    return out_degree_G0_weak: list containing the out-degree for the nodes of the first weakly connected component.
+    '''
     betweenness = nx.betweenness_centrality(G0, k=500)
     betweenness_weak = nx.betweenness_centrality(G0_weak, k=60)
     in_degree_G0 = [G0.in_degree(node) for node in nx.nodes(G0)]
@@ -298,6 +302,18 @@ def compute_betweeness(G0, G0_weak):
     
     
 def sort_data(G0, betweenness):
+    '''
+    This function return 4 sorted lists.
+    
+    param G0: subgraph of G in networkX format containing the nodes belonging to the first strongly connected component.
+    param betweenness: dictionary of nodes with betweenness centrality as the value, in the case of the first strongly 
+    connected component.
+    
+    return nodes: sorted list containing the user Id of each node. 
+    return in_degreeG0: sorted list containing the in-degree of each node of the first strongly connected component.
+    return out_degreeG0: sorted list containing the out-degree of each node of the first strongly connected component.
+    return betweenessG0: sorted list containing the betweeness centrality of each node of the first strongly connected component.
+    '''
     nodes = []
     in_degreeG0 = []
     out_degreeG0 = []
@@ -387,6 +403,16 @@ def n_tweets_over_time_selected_community(df, df_top, label_community):
     return df_tweets
 
 def n_tweets_over_time(df):
+    '''
+    This function returns a dataframe with an additive column with respect to the dataframe in input containing the number of
+    tweets for each day.
+    
+    param df: dataframe
+    
+    param df_tweets: manipulated dataframe with an additive column with respect to df, containing the number of tweets for each
+    day.
+    '''
+    
     df_tweets_minus_last_day = df[df['created_at_days']<(df['created_at_days'].max()-pd.Timedelta('1 days'))]
     df_tweets = df_tweets_minus_last_day.groupby('created_at_days').count()[['created_at']]
     df_tweets.columns = ['Ntweets'] 
@@ -672,6 +698,17 @@ def get_daily_components(Gvac_days, com_of_user):
     return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak
 
 def col_retweet_network(df, min_rt):
+    '''
+    This function returns the dataframe used to build the retweet network where the relevant columns are user.id and
+    retweeted_status.user.id. In fact, the first one is the retweeting user (x) and the second one the retweeted user (y) of the
+    edge x->y.
+    
+    param df: dataframe
+    param min_rt: integer being a parameter in configurations.py through which we set the minimum for the weight threshold for
+    edges to be considered (1 is the minimum -> keep edges with at least 1 retweet) 
+    
+    return df_edgelist: dataframe containing the relevant columns user.id and retweeted_status.user.id.
+    '''
     list_col = ['user.id','retweeted_status.user.id']
     df_edgelist=df[list_col].copy()
     df_edgelist=df_edgelist.dropna(how='any')
@@ -682,7 +719,12 @@ def col_retweet_network(df, min_rt):
 
 def compute_clustering(Gvac):
     '''
-    Here we evaluate the clustering coefficient
+    Here we evaluate the clustering coefficient.
+    
+    param Gvac: network in networkX format.
+    
+    return nodes: list containing all the nodes of the network in input.
+    return clustering: list containing the clustering coefficient of each node.
     '''
     lcc = nx.clustering(Gvac)
     nodes = []
