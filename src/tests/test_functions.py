@@ -10,7 +10,34 @@ import random
 import sys
 sys.path.append('../functions')
 from configurations import SEED
-from functions import *
+from functions import (
+    assign_communities,
+    mixing_matrix,
+    randomize_network,
+    swapping,
+    compute_randomized_modularity,
+    compute_connected_component,
+    gini,
+    compute_betweeness,
+    sort_data,
+    create_df,
+    filter_top_users,
+    read_cleaned_war_data,
+    n_tweets_over_time_selected_community,
+    n_tweets_over_time,
+    age_of_activity,
+    create_date_store,
+    mixing_matrix_manipulation,
+    degree_distributions,
+    words_frequency,
+    get_daily_nodes,
+    get_daily_Gini_in_out,
+    get_daily_assortativity,
+    get_daily_modularity,
+    get_daily_components,
+    col_retweet_network,
+    compute_clustering
+)
 
 
 def test_assign_communities(read_file_G, read_file_com_of_user):
