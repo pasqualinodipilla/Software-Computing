@@ -30,16 +30,6 @@ from configurations import (
     DIR_FILES
 )
 
-'''
-Network analysis over time.
-Here we want to analyze the main properties of our network day by day from 01-02-2022 to 11-03-2022; in particular we compare day
-by day the modularity of our real network with the modularity of a random network obtained with a shuffling of the edges
-(configuration model), in order to demonstrate that our network is actually clustered. Then we evaluate the assortativity
-coefficient, that is often used as a correlation measure between nodes, the Gini index, that is a measure of statistical
-dispersion used to represent the inequality within a social group, and we identify the first two strongly and weakly connected
-components in order to find out if the giant component is made up of users belonging to a single community or not.
-'''
-
 def main():
     #We read the data of the "war network" by considering the same communities of the "vaccine network" 
     with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f:

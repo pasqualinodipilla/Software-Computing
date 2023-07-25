@@ -22,7 +22,7 @@ def define_k():
     return k
 
 @pytest.fixture
-def ReadFileG(define_k):
+def read_file_G(define_k):
     G=nx.read_weighted_edgelist(STOR_DIR+PATH_VACCINE,
                                        delimiter='\t',
                                        create_using=nx.DiGraph,
@@ -33,24 +33,24 @@ def ReadFileG(define_k):
     return G
         
 @pytest.fixture
-def ReadFileComOfUser():
+def read_file_com_of_user():
     with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f: 
         com_of_user=pickle.load(f)
     return com_of_user
         
 @pytest.fixture
-def create_edgelist(ReadFileG, ReadFileComOfUser):
-    G = ReadFileG
-    com_of_user = ReadFileComOfUser
+def create_edgelist(read_file_G, read_file_com_of_user):
+    G = read_file_G
+    com_of_user = read_file_com_of_user
     nx.set_node_attributes(G, com_of_user, "community")
     list_combination = ['AA','AB','BA','BB']
-    edgelist = list(ReadFileG.edges())
-    edgelist=[(node1,node2) for node1,node2 in edgelist if ReadFileG.nodes[node1]["community"]+ReadFileG.nodes[node2]["community"] in list_combination]
+    edgelist = list(read_file_G.edges())
+    edgelist=[(node1,node2) for node1,node2 in edgelist if read_file_G.nodes[node1]["community"]+read_file_G.nodes[node2]["community"] in list_combination]
     return edgelist
 
 @pytest.fixture
-def compute_weights(ReadFileG, create_edgelist):
-    edge_weight = nx.get_edge_attributes(ReadFileG,'weight')
+def compute_weights(read_file_G, create_edgelist):
+    edge_weight = nx.get_edge_attributes(read_file_G,'weight')
     edge_weight = [edge_weight[(node1, node2)] for (node1, node2) in create_edgelist]
     return edge_weight
 
@@ -60,8 +60,8 @@ def n_swaps():
     return N
 
 @pytest.fixture
-def get_groupA_groupB(ReadFileG):
-    G = ReadFileG
+def get_groupA_groupB(read_file_G):
+    G = read_file_G
     N = len(nx.nodes(G))
     group_A = []
     group_B = []

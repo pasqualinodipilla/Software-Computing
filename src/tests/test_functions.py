@@ -13,7 +13,7 @@ from configurations import SEED
 from functions import *
 
 
-def test_assign_communities(ReadFileG, ReadFileComOfUser):
+def test_assign_communities(read_file_G, read_file_com_of_user):
     '''
     This function is testing if the output of assign_communities() function are of the correct type:
     group_A and group_B must be lists, Gvac_subgraph, Gvac_A and Gvac_B must be direct graphs. Then       
@@ -22,12 +22,12 @@ def test_assign_communities(ReadFileG, ReadFileComOfUser):
     Gvac_B (i.e. the subgraph containing the nodes belonging to group B) actually corresponds to 
     group_B. At the end it tests that the set list of nodes belonging to Gvac_subgraph is given by
     the set list of nodes belonging to Gvac_A or Gvac_B
-    :param ReadFileG: variable into which we store the network G_vac in networkX format.
-    :param ReadFileComOfUser: variable into which we store com_of_user that is a dictionary having 
+    :param read_file_G: variable into which we store the network G_vac in networkX format.
+    :param read_file_com_of_user: variable into which we store com_of_user that is a dictionary having 
     the Id user as key and the community as value.
     '''
    
-    Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B=assign_communities(ReadFileG, ReadFileComOfUser)
+    Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B=assign_communities(read_file_G, read_file_com_of_user)
     assert type(group_A) == list
     assert type(group_B) == list
     assert type(Gvac_subgraph) == type(nx.DiGraph())
@@ -42,12 +42,12 @@ def test_assign_communities(ReadFileG, ReadFileComOfUser):
     assert set_nodes_Gvac_B & set(group_B) == set_nodes_Gvac_B
     assert set_nodes_Gvac_A | set_nodes_Gvac_B == set_nodes_Gvac_subgraph
     
-def test_mixing_matrix(ReadFileG, ReadFileComOfUser, create_edgelist, compute_weights):
+def test_mixing_matrix(read_file_G, read_file_com_of_user, create_edgelist, compute_weights):
     '''
     This function is used to test if the 2 columns that we get in the mixing matrix for the unweighted and weighted cases are actually the number of edges coming respectively from users of group A and users of group B. In addition we test if the sum of all the elements of the 2 matrices corresponds to the overall number of edges of our graph, in both the cases unweighted and weighted.
     '''
     
-    df, df_weight = mixing_matrix(ReadFileG, ReadFileComOfUser)
+    df, df_weight = mixing_matrix(read_file_G, read_file_com_of_user)
     assert set(df.columns) == set(['A','B'])
     assert set(df_weight.columns) == set(['A','B'])
     assert int(df.sum().sum()) == len(create_edgelist)
