@@ -44,4 +44,6 @@ pytest test_functions.py
 | ------ | ------ |
 | conftest.py | It contains auxiliary functions thanks to the use of pytest fixtures, thus in this way  instead of running the same code for every test, we can attach fixture function to the tests and it will run and return the data to the test before executing each test. |
 | test_functions.py | It contains all the functions used to test the functions contained in functions.py. |
+
+
 Now, from Software-Computing directory we can check that all the data have been correctly generated in 'data' directory, and by entering in 'tutorial' directory we can run the jupyter notebook plot_graph.ipynb. The plots will be saved in 'plots' directory that is included in 'tutorial'.
