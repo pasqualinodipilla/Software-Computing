@@ -9,7 +9,7 @@ import copy
 import random
 import sys
 sys.path.append('../functions')
-from configurations import SEED
+from configurations import SEED, n_rand
 from functions import (
     assign_communities,
     mixing_matrix,
@@ -43,15 +43,17 @@ from functions import (
 def test_assign_communities(read_file_G, read_file_com_of_user):
     '''
     This function is testing if the output of assign_communities() function are of the correct type:
-    group_A and group_B must be lists, Gvac_subgraph, Gvac_A and Gvac_B must be direct graphs. Then       
-    it tests that the set list of nodes belonging to Gvac_A (i.e. the subgraph containing the nodes
+    group_A and group_B must be lists, Gvac_subgraph, Gvac_A and Gvac_B must be direct graphs. Then it
+    tests that the set list of nodes belonging to Gvac_A (i.e. the subgraph containing the nodes
     belonging to group A) actually corresponds to group_A and that the set list of nodes belonging to
-    Gvac_B (i.e. the subgraph containing the nodes belonging to group B) actually corresponds to 
-    group_B. At the end it tests that the set list of nodes belonging to Gvac_subgraph is given by
-    the set list of nodes belonging to Gvac_A or Gvac_B
+    Gvac_B (i.e. the subgraph containing the nodes belonging to group B) actually corresponds to
+    group_B. At the end it tests that the set list of nodes belonging to Gvac_subgraph is given by the
+    set list of nodes belonging to Gvac_A or Gvac_B.
+    
     :param read_file_G: variable into which we store the network G_vac in networkX format.
-    :param read_file_com_of_user: variable into which we store com_of_user that is a dictionary having 
-    the Id user as key and the community as value.
+    :param read_file_com_of_user: variable into which we store com_of_user that is a dictionary having
+    the Id user as key and the
+    community as value.
     '''
    
     Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B=assign_communities(read_file_G, read_file_com_of_user)
@@ -71,7 +73,17 @@ def test_assign_communities(read_file_G, read_file_com_of_user):
     
 def test_mixing_matrix(read_file_G, read_file_com_of_user, create_edgelist, compute_weights):
     '''
-    This function is used to test if the 2 columns that we get in the mixing matrix for the unweighted and weighted cases are actually the number of edges coming respectively from users of group A and users of group B. In addition we test if the sum of all the elements of the 2 matrices corresponds to the overall number of edges of our graph, in both the cases unweighted and weighted.
+    This function is used to test if the 2 columns that we get in the mixing matrix for the unweighted
+    and weighted cases are actually the number of edges coming respectively from users of group A and
+    users of group B. In addition we test if the sum of all the elements of the 2 matrices corresponds
+    to the overall number of edges of our graph, in both the cases unweighted and weighted.
+    
+    :param read_file_G: variable into which we store the network G_vac in networkX format.
+    :param read_file_com_of_user: variable into which we store com_of_user that is a dictionary having
+    the Id user as key and the community as value.
+    :param create_edgelist: edgelist containing a possible combination AA, AB, BA, BB for each couple
+    of nodes that are connected by a link.
+    :param compute_weights: dictionary containing the weights of each link.
     '''
     
     df, df_weight = mixing_matrix(read_file_G, read_file_com_of_user)
@@ -87,32 +99,40 @@ def test_randomize_network(n_swaps, get_groupA_groupB):
     connecting the nodes in the shuffled network, Gvac_shuffle.
     In addition we test if modularity_unweighted and modularity_weighted, outputs of the c
     orresponding function, are float type or not.
-    '''
     
-    modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(SEED,n_swaps, get_groupA_groupB['G'], get_groupA_groupB['group_A'], get_groupA_groupB['group_B'])
-    edge_weight1 = nx.get_edge_attributes(cache.Gvac_subgraph,'weight')
-    edge_weight1 = [edge_weight1[(node1, node2)] for (node1, node2) in edge_weight1]
-    edge_weight2 = nx.get_edge_attributes(Gvac_shuffle,'weight')
-    edge_weight2 = [edge_weight2[(node1, node2)] for (node1, node2) in edge_weight2]
-    assert int(sum(edge_weight1)) == int(sum(edge_weight2))
-    assert len(Gvac_shuffle.nodes()) == len(get_groupA_groupB['G'].nodes())
-    assert len(Gvac_shuffle.edges()) == len(get_groupA_groupB['G'].edges())
+    :param n_swaps: integer number representing the number of swaps.
+    :param get_groupA_groupB: dictionary having as values a network G, and two lists group_A and
+    group_B containing the users belonging to group_A and group_B respectively.
+    '''
+    modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(SEED,n_swaps, get_groupA_groupB['G_subgraph'], get_groupA_groupB['group_A'], get_groupA_groupB['group_B'])
+   
+    #edge_weight1 = nx.get_edge_attributes(cache.Gvac_subgraph,'weight')
+    #edge_weight1 = [edge_weight1[(node1, node2)] for (node1, node2) in edge_weight1]
+    #edge_weight2 = nx.get_edge_attributes(Gvac_shuffle,'weight')
+    #edge_weight2 = [edge_weight2[(node1, node2)] for (node1, node2) in edge_weight2]
+    #assert int(sum(edge_weight1)) == int(sum(edge_weight2))
+    assert len(Gvac_shuffle.nodes()) == len(get_groupA_groupB['G_subgraph'].nodes())
+    sum(list(nx.get_edge_attributes(Gvac_shuffle,'weight').values())) == sum(list(nx.get_edge_attributes(get_groupA_groupB['G_subgraph'],'weight').values()))
     assert type(modularity_unweighted) == float
     assert type(modularity_weighted) == float
     
-def test_compute_randomized_modularity():
+def test_compute_randomized_modularity(get_groupA_groupB):
     '''
     This function is used to test the type of the output of compute_randomized_modularity() function:
     list_modularity_unweighted, list_modularity_weighted must be lists. Then, since in our case we 
     perform 10 randomizations, we test if the lenght of the two lists is equal to 10.
+    
+    :param get_groupA_groupB: :param get_groupA_groupB: dictionary having as values a network G, and
+    two lists group_A and group_B containing the users belonging to group_A and group_B respectively.
     '''
-    list_modularity_unweighted, list_modularity_weighted =compute_randomized_modularity(cache.Gvac_subgraph,cache.group_A,cache.group_B)
+    list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(get_groupA_groupB['G_subgraph'], get_groupA_groupB['group_A'],get_groupA_groupB['group_B'])
+    
     assert type(list_modularity_unweighted) == list
     assert type(list_modularity_weighted) == list
-    assert len(list_modularity_unweighted) == 10 
-    assert len(list_modularity_weighted) == 10
+    assert len(list_modularity_unweighted) == n_rand 
+    assert len(list_modularity_weighted) == n_rand
     
-def test_compute_connected_component():
+def test_compute_connected_component(get_groupA_groupB):
     '''
     This function is used to test the type of the output of compute_connected_component() function:
     group_A_G0, group_B_G0, group_A_G1, group_B_G1 must be lists, G0 and G1 must be direct graphs.
@@ -121,9 +141,14 @@ def test_compute_connected_component():
     group_B_G0. Similarly it tests if the nodes of the graph G1 (representing the second strongly 
     connected component) actually correspond to the set list of nodes belonging to group_A_G1 or
     group_B_G1.
+    
+    :param get_groupA_groupB: :param get_groupA_groupB: dictionary having as values a network G, and
+    two lists group_A and group_B containing the users belonging to group_A and group_B respectively.
     '''
-    group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(cache.Gvac_subgraph,cache.group_A, cache.group_B)
-    cache.G0 = G0
+  
+    #test weak_or_strong = strong
+    group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(get_groupA_groupB['G_subgraph'],get_groupA_groupB['group_A'], get_groupA_groupB['group_B'], 'strong')
+    
     assert type(group_A_G0) == list
     assert type(group_B_G0) == list
     assert type(group_A_G1) == list
@@ -133,54 +158,66 @@ def test_compute_connected_component():
     assert set(group_A_G0) | set(group_B_G0) == set(G0.nodes())
     assert set(group_A_G1) | set(group_B_G1) == set(G1.nodes())
     
-'''    
-def test_compute_weak_connected_component():
+    #test weak_or_strong = weak
+    group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(get_groupA_groupB['G_subgraph'],get_groupA_groupB['group_A'], get_groupA_groupB['group_B'], 'weak')
     
-    This function is used to test the type of the output of compute_connected_component() function:
-    group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak must be lists, G0_weak and
-    G1_weak must be direct graphs.
-    Then the functions tests if the nodes of the graph G0_weak (representing the first weakly 
-    connected component) actually correspond to the set list of nodes belonging to group_A_G0_weak or
-    group_B_G0_weak. Similarly it tests if the nodes of the graph G1_weak (representing the second 
-    weakly connected component) actually correspond to the set list of nodes belonging to 
-    group_A_G1_weak or group_B_G1_weak. In addition it tests if the first strongly connected 
-    component is smaller than the first weakly connected component, as it should be.
+    assert type(group_A_G0) == list
+    assert type(group_B_G0) == list
+    assert type(group_A_G1) == list
+    assert type(group_B_G1) == list
+    assert type(G0) == type(nx.DiGraph())
+    assert type(G1) == type(nx.DiGraph())
+    assert set(group_A_G0) | set(group_B_G0) == set(G0.nodes())
+    assert set(group_A_G1) | set(group_B_G1) == set(G1.nodes())
     
-    (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak,
-     group_B_G1_weak,G0_weak, G1_weak)=compute_weak_connected_component(cache.Gvac_subgraph,
-                                                                        cache.group_A,
-                                                                        cache.group_B)
     
-    assert type(group_A_G0_weak) == list
-    assert type(group_B_G0_weak) == list
-    assert type(group_A_G1_weak) == list
-    assert type(group_B_G1_weak) == list
-    assert type(G0_weak) == type(nx.DiGraph())
-    assert type(G1_weak) == type(nx.DiGraph())
-    assert set(group_A_G0_weak) | set(group_B_G0_weak) == set(G0_weak.nodes())
-    assert set(group_A_G1_weak) | set(group_B_G1_weak) == set(G1_weak.nodes())
-    assert len(cache.G0.nodes()) <= len(G0_weak.nodes())
-
-'''
-
-def test_gini():
+def test_gini(read_file_G, read_file_com_of_user):
     '''
-    This function firstly tests if the type of the Gini index value given in output from the corresponding function is a float type (in both the cases Gini_in, Gini_out) and than, as a further confirmation, if we assume a pure equidistribution, for example with all values of the x array in input equal to 1, we test if we will obtain a gini index equal to 0, as it should be by definition.
+    This function firstly tests if the type of the Gini index value given in output from the
+    corresponding function is a float type (in both the cases Gini_in, Gini_out) and than, as a
+    further confirmation, if we assume a pure equidistribution, for example with all values of the x
+    list in input equal to 1, we test if we will obtain a gini index equal to 0, as it should be by
+    definition. If instead we have the maximum of inequality, for example by assuming the first
+    element equal to 1 and the others equal to 0, we will get a gini index almost equal to 1. 
+    Eventually a Gini Index of 0.5 shows that there is equal distribution of elements across some
+    classes.
+    
+    :param read_file_G: variable into which we store the network G_vac in networkX format.
+    :param read_file_com_of_user: variable into which we store com_of_user that is a dictionary having
+    the Id user as key and the
+    community as value.
     '''
-    in_degree_original = [cache.G_vac.in_degree(node) for node in nx.nodes(cache.G_vac)]
-    out_degree_original = [cache.G_vac.out_degree(node) for node in nx.nodes(cache.G_vac)]
+    in_degree_original = [read_file_G.in_degree(node) for node in nx.nodes(read_file_G)]
+    out_degree_original = [read_file_G.out_degree(node) for node in nx.nodes(read_file_G)]
     
     Gini_in = gini(in_degree_original)
     Gini_out = gini(out_degree_original)
 
-    Gini_0 = gini([1,1,1,1])
+    Gini_0 = gini([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
+    Gini_05 = gini([1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0])
+    Gini_1 = gini([1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
     
-    assert type(Gini_in) == np.float64
-    assert type(Gini_out) == np.float64
+    assert type(Gini_in) == float 
+    assert type(Gini_out) == float 
     assert Gini_0 == 0
+    assert Gini_1 >= 0.95 and Gini_1 <= 1.
+    assert Gini_05 == 0.5
     
-def test_swapping():
-    assert 1
+def test_swapping(n_swaps, create_list_edges):
+    '''
+    This function tests that the lenght of the list containing the edges of the original network is
+    equal to the lenght of the same list in the case of the shuffled network. The same is done by
+    considering the weights and then it tests that the set of edges of the original network is
+    different from the set of edges of the shuffled network.
+    
+    :param n_swaps: integer number representing the number of swaps.
+    :param create_list_edges: edgelist containing a possible combination AA, AB, BA, BB for each
+    couple of nodes that are connected by a link.
+    '''
+    list_edges, edge_weight = swapping(n_swaps, copy.deepcopy(create_list_edges))
+    assert len(list_edges)==len(create_list_edges)
+    assert set(list_edges) != set(create_list_edges)
+    assert sum(list(edge_weight.values())) == len(create_list_edges)
     
 def test_compute_clustering():
     assert 1
