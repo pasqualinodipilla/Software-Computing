@@ -219,41 +219,129 @@ def test_swapping(n_swaps, create_list_edges):
     assert set(list_edges) != set(create_list_edges)
     assert sum(list(edge_weight.values())) == len(create_list_edges)
     
-def test_compute_clustering():
-    assert 1
+def test_create_df(create_input_for_df):
+    df = create_df(create_input_for_df['col_names'], create_input_for_df['list_content'])
     
-def test_col_retweet_network():
-    assert 1
-
-def test_get_daily_components():
-    assert 1
+    assert len(df) == 2
+    assert len(df.columns) == 3 
     
-def test_get_daily_modularity():
-    assert 1
+def test_filter_top_users(input_test_filter_top_users):
+    #test_filter_top_users for community A and top_users_fraction parameter = 0.5
+    df_top = filter_top_users(input_test_filter_top_users, 'A', 0.5)
+    assert len(df_top) == 2
+    assert set(df_top['total-degree'].tolist()) == {22,13}
     
-def test_get_daily_assortativity():
-    assert 1
+    #test_filter_top_users for community B and top_users_fraction parameter = 0.5
+    df_top = filter_top_users(input_test_filter_top_users, 'B', 0.5)
+    assert len(df_top) == 3
+    assert set(df_top['total-degree'].tolist()) == {11,9,6} 
     
-def test_daily_Gini_in_out():
-    assert 1
+def test_mixing_matrix_manipulation(input_mixing_matrix_manipulation):
+    df1, df2 = mixing_matrix_manipulation(input_mixing_matrix_manipulation)
+    assert len(df1.columns) == 2
+    assert len(df1) == 2
+    df3 = pd.DataFrame({'A':[0.1, 0.2],'B':[0.3, 0.4]}, index = ['A', 'B'])
+    assert df1.loc['A', 'A'] == df3.loc['A', 'A']
+    assert df1.loc['A', 'B'] == df3.loc['A', 'B']
+    assert df1.loc['B', 'A'] == df3.loc['B', 'A']
+    assert df1.loc['B', 'B'] == df3.loc['B', 'B']
     
-def test_get_daily_nodes():
-    assert 1
+    assert len(df2.columns) == 2
+    assert len(df2) == 2
+    df4 = pd.DataFrame({'A':[(1/4), (1/3)],'B':[(3/4), (2/3)]}, index = ['A', 'B'])
+    assert df2.loc['A', 'A'] == df4.loc['A', 'A']
+    assert df2.loc['A', 'B'] == df4.loc['A', 'B']
+    assert df2.loc['B', 'A'] == df4.loc['B', 'A']
+    assert df2.loc['B', 'B'] == df4.loc['B', 'B']
     
-def test_words_frequency():
-    assert 1
+def test_compute_clustering(read_file_G):
+    nodes, clustering = compute_clustering(read_file_G)
     
-def test_degree_distributions():
-    assert 1
+    assert set(nodes) == set([str(i) for i in range(10)])
+    for value in clustering: 
+        assert value >= 0
+    assert len(nodes) == 10
+    assert len(clustering) == 10
     
-def test_mixing_matrix_manipulation():
-    assert 1
+def test_col_retweet_network(dataframe_retweet, dataframe_retweet2):
+    df = col_retweet_network(dataframe_retweet)
+    assert len(df) == 3
+    assert df.equals(dataframe_retweet2)
     
-def test_create_date_store():
-    assert 1
+def test_get_daily_components(read_file_G_days,read_com_of_user_days):
+    nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = get_daily_components(read_file_G_days,read_com_of_user_days)
     
-def test_age_of_activity():
-    assert 1
+    assert (len(nodes_group_A_G0)==3)&(len(nodes_group_B_G0)==3)&(len(nodes_group_A_G1)==3)&(len(nodes_group_B_G1)==3)&(len(nodes_group_A_G0_weak)==3)&(len(nodes_group_B_G0_weak)==3)&(len(nodes_group_A_G1_weak)==3)&(len(nodes_group_B_G1_weak)==3)
+    assert set(nodes_group_A_G0) == {0,1}
+    assert set(nodes_group_B_G0) == {0,1}
+    assert set(nodes_group_A_G1) == {0}
+    assert set(nodes_group_B_G1) == {1}
+    assert set(nodes_group_A_G0_weak) == {84, 268, 214}
+    assert set(nodes_group_B_G0_weak) == {282, 213, 79}
+    assert set(nodes_group_A_G1_weak) == {32, 26, 19}
+    assert set(nodes_group_B_G1_weak) == {15, 38, 31}
+    
+def test_get_daily_modularity(read_file_G_days,read_com_of_user_days):
+    mod_unweighted_file, mod_weighted_file, random_mod_unweighted_file, random_mod_weighted_file, nodes_group_A, nodes_group_B = get_daily_modularity(read_file_G_days,read_com_of_user_days)
+        
+    assert len(mod_unweighted_file) == 3
+    assert len(mod_weighted_file) == 3
+    assert len(random_mod_unweighted_file) == 3
+    assert len(random_mod_weighted_file) == 3
+    assert len(nodes_group_A) == 3
+    assert len(nodes_group_B) == 3
+    assert set(mod_unweighted_file) == {0.004, -0.019, 0.019}
+    assert set(mod_weighted_file) == {0.008, -0.02, 0.018}
+    assert {len(random_mod_unweighted_file[0]),len(random_mod_unweighted_file[1]), len(random_mod_unweighted_file[2])} == {10}
+    assert {len(random_mod_weighted_file[0]),len(random_mod_weighted_file[1]), len(random_mod_weighted_file[2])} == {10}
+    assert set(nodes_group_A) == {480, 314, 403}
+    assert set(nodes_group_B) == {419, 332, 487}
+    
+def test_get_daily_assortativity(read_file_G_days):
+    assortativity_values = get_daily_assortativity(read_file_G_days)
+    assert len(assortativity_values) == 3
+    assert set(assortativity_values) == {-0.19, -0.15, -0.17}
+    
+def test_daily_Gini_in_out(read_file_G_days):
+    Gini_in_values, Gini_out_values = get_daily_Gini_in_out(read_file_G_days)
+    assert len(Gini_in_values) == 3
+    assert len(Gini_out_values) == 3
+    assert set(Gini_in_values) == {0.842, 0.931, 0.937}
+    assert set(Gini_out_values) == {0.422, 0.304, 0.294}
+    
+def test_get_daily_nodes(read_file_G_days):
+    nodes_original = get_daily_nodes(read_file_G_days)
+    assert len(nodes_original) == 3
+    assert set(nodes_original) == {646, 822, 967}
+    
+def test_words_frequency(dataframe_retweet):
+    values_list, key_list = words_frequency(dataframe_retweet, [2])
+    assert len(key_list) == 3
+    assert len(values_list) == 3
+    assert set(key_list) == {'table', 'cat', 'house'}
+    assert set(values_list) == {3,2,1}
+    
+def test_degree_distributions(read_file_G):
+    in_degree, out_degree = degree_distributions(read_file_G)
+    assert len(in_degree) == 10
+    assert len(out_degree) == 10
+    assert set(in_degree) == {1, 2, 3}
+    assert set(out_degree) == {1, 2, 3, 4}
+    
+def test_create_date_store(define_path_day):
+    date_store, Gvac_days = create_date_store(define_path_day)
+    
+    assert len(date_store) == 3
+    assert len(Gvac_days) == 3
+    assert set(date_store) == {'02', '03', '2-01'}
+    assert type(Gvac_days[0]) == nx.DiGraph
+    assert type(Gvac_days[1]) == nx.DiGraph
+    assert type(Gvac_days[2]) == nx.DiGraph
+    
+def test_age_of_activity(read_file_G_days):
+    nodes_age_in, nodes_age_out = age_of_activity(read_file_G_days)
+    assert len(nodes_age_in) == 3
+    assert len(nodes_age_out) == 3
     
 def test_n_tweets_over_time():
     assert 1
@@ -262,12 +350,6 @@ def test_n_tweets_over_time_selected_community():
     assert 1
     
 def test_read_cleaned_war_data():
-    assert 1
-    
-def test_filter_top_users():
-    assert 1
-    
-def test_create_df():
     assert 1
     
 def test_sort_data():

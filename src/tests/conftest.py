@@ -11,29 +11,63 @@ import pytest
 import sys
 sys.path.append('../functions')
 from configurations import (
-    STOR_DIR,
-    PATH_VACCINE,
-    PATH_COM_OF_USER
+    PATH_EDGELIST
 )
 
 @pytest.fixture
-def define_k():
-    k = 2000
-    return k
+def define_stor_dir():
+    return './test_data/edgelist_test.txt'
 
 @pytest.fixture
-def read_file_G(define_k):
-    G=nx.read_weighted_edgelist(STOR_DIR+PATH_VACCINE,
+def define_com_of_user():
+    return './test_data/com_of_user.pkl'
+
+@pytest.fixture
+def define_com_of_user_days():
+    return './test_data/com_of_user_days.pkl'
+
+@pytest.fixture
+def define_path_day():
+    return './test_data/edgelist_days/'
+
+@pytest.fixture
+def define_path_day1():
+    return './test_data/edgelist_days/edgelist_w1_2022-02-01.txt'
+
+@pytest.fixture
+def define_path_day2():
+    return './test_data/edgelist_days/edgelist_w1_2022-02-02.txt'
+
+@pytest.fixture
+def define_path_day3():
+    return './test_data/edgelist_days/edgelist_w1_2022-02-03.txt'
+
+@pytest.fixture
+def read_com_of_user_days(define_com_of_user_days):
+    with open(define_com_of_user_days,'rb') as f: 
+        com_of_user_days=pickle.load(f)
+    return com_of_user_days
+    
+@pytest.fixture
+def read_file_G_days(define_path_day1, define_path_day2, define_path_day3):
+    list_days = [define_path_day1, define_path_day2, define_path_day3]
+    G_days = []
+    for path in list_days:
+        G=nx.read_weighted_edgelist(path,delimiter='\t',create_using=nx.DiGraph,nodetype=str)
+        G_days.append(G)
+    return G_days
+
+@pytest.fixture
+def read_file_G(define_stor_dir):
+    G=nx.read_weighted_edgelist(define_stor_dir,
                                        delimiter='\t',
                                        create_using=nx.DiGraph,
                                        nodetype=str)
-    sampled_nodes = random.sample(G.nodes, define_k)
-    sampled_graph = G.subgraph(sampled_nodes)
-    return sampled_graph
+    return G
         
 @pytest.fixture
-def read_file_com_of_user():
-    with open(STOR_DIR+PATH_COM_OF_USER,'rb') as f: 
+def read_file_com_of_user(define_com_of_user):
+    with open(define_com_of_user,'rb') as f: 
         com_of_user=pickle.load(f)
     return com_of_user
         
@@ -90,4 +124,36 @@ def get_groupA_groupB(create_G_with_community):
 def create_list_edges():
     return [(1,2), (5, 6), (3,5), (2,7), (1,2), (9,3), (3,4), (4,1), (5,7), (9,2)]
 
-    
+@pytest.fixture
+def create_input_for_df(): #input_test_create_df
+    col_names = ['A','B','C']
+    list_content = [[1,2],[7,2],[3,6]]
+    return {'col_names':col_names, 'list_content': list_content}
+
+@pytest.fixture
+def input_test_filter_top_users():
+    df_users = pd.DataFrame({'community': ['A','A','B','B','A','B', 'B', 'A', 'B', 'B'],
+                            'total-degree':[4,13,2,11,8,9,6,22,1,5]})
+    return df_users
+                            
+@pytest.fixture
+def input_mixing_matrix_manipulation():
+    df = pd.DataFrame({'A':[1, 2],
+                       'B':[3, 4]})
+    df.index=['A','B']
+    return df
+
+@pytest.fixture
+def dataframe_retweet():
+    df = pd.DataFrame({'user.id':[1,1,1,5,3,3,1],
+                       'retweeted_status.user.id':[4,4,4,np.nan,2,2,2],
+                       'text':['hi','hi','apple','bye','table table table , e o . https ...',np.nan,'cat cat house ; !']})
+    return df
+
+@pytest.fixture
+def dataframe_retweet2():
+    df = pd.DataFrame({'user.id':[1,3,1],
+                       'retweeted_status.user.id':[4.,2.,2.],
+                       'weight':[3,2,1]})
+    df = df.sort_values(by=['user.id','retweeted_status.user.id']).reset_index(drop = True)
+    return df
