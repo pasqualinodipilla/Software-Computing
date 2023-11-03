@@ -144,10 +144,18 @@ def input_mixing_matrix_manipulation():
     return df
 
 @pytest.fixture
+def df_top():
+    df = pd.DataFrame({'user':[1,3], 'community':['A','A']})
+    return df
+
+@pytest.fixture
 def dataframe_retweet():
     df = pd.DataFrame({'user.id':[1,1,1,5,3,3,1],
                        'retweeted_status.user.id':[4,4,4,np.nan,2,2,2],
-                       'text':['hi','hi','apple','bye','table table table , e o . https ...',np.nan,'cat cat house ; !']})
+                       'text':['hi','hi','apple','bye','table table table , e o . https ...',np.nan,'cat cat house ; !'],
+                       'created_at_days':['2022-06-10','2022-06-12','2022-03-02','2021-10-28','2022-06-10','2022-03-02','2022-03-02'],
+                       'created_at':[2,5,4,10,20,21,7]})
+    df['created_at_days'] = pd.to_datetime(df['created_at_days'])
     return df
 
 @pytest.fixture

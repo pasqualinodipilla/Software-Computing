@@ -342,14 +342,27 @@ def test_age_of_activity(read_file_G_days):
     nodes_age_in, nodes_age_out = age_of_activity(read_file_G_days)
     assert len(nodes_age_in) == 3
     assert len(nodes_age_out) == 3
+    assert len(nodes_age_in[0].keys()) == 211
+    assert len(nodes_age_in[1].keys()) == 348
+    assert len(nodes_age_in[2].keys()) == 516
+    assert len(nodes_age_out[0].keys()) == 440
+    assert len(nodes_age_in[1].keys()) == 348
+    assert len(nodes_age_in[2].keys()) == 516
     
-def test_n_tweets_over_time():
-    assert 1
+def test_n_tweets_over_time(dataframe_retweet):
+    df_tweets = n_tweets_over_time(dataframe_retweet)
+    assert set(df_tweets.columns) == {'Ntweets'}
+    assert set(df_tweets.index) == {pd.to_datetime('2022-06-10'), pd.to_datetime('2022-03-02'), pd.to_datetime('2021-10-28')}
+    assert set(df_tweets['Ntweets'].to_list()) == {1,2,3}
     
-def test_n_tweets_over_time_selected_community():
-    assert 1
+def test_n_tweets_over_time_selected_community(dataframe_retweet, df_top):
+    df_tweets = n_tweets_over_time_selected_community(dataframe_retweet.rename(columns = {'user.id':'user'}), df_top, 'A')
+    assert set(df_tweets.columns) == {'A'}
+    assert set(df_tweets.index) == {pd.to_datetime('2022-06-10'), pd.to_datetime('2022-03-02')}
+    assert set(df_tweets['A'].to_list()) == {2,3}
     
-def test_read_cleaned_war_data():
+def test_read_cleaned_war_data(PATH_WAR):
+    df = read_cleaned_war_data(PATH_WAR)
     assert 1
     
 def test_sort_data():
