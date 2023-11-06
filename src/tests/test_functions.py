@@ -361,12 +361,21 @@ def test_n_tweets_over_time_selected_community(dataframe_retweet, df_top):
     assert set(df_tweets.index) == {pd.to_datetime('2022-06-10'), pd.to_datetime('2022-03-02')}
     assert set(df_tweets['A'].to_list()) == {2,3}
     
-def test_read_cleaned_war_data(PATH_WAR):
-    df = read_cleaned_war_data(PATH_WAR)
-    assert 1
+def test_read_cleaned_war_data(define_path_war):
+    df = read_cleaned_war_data(define_path_war)
+    assert len(df) == 354059
+    assert set(df.columns) == {'created_at', 'created_at_days', 'id', 'lang', 'retweeted_status.id',
+'retweeted_status.user.id', 'retweeted_text', 'text', 'url', 'url_domain', 'user', 'user.screen_name'}
     
 def test_sort_data():
     assert 1
     
-def test_compute_betweeness():
-    assert 1
+def test_compute_betweeness(read_file_components_weak):
+    betweenness, betweenness_weak, in_degree_G0, out_degree_G0, in_degree_G0_weak, out_degree_G0_weak = compute_betweeness(read_file_components_weak, read_file_components_weak)
+    assert len(betweenness) == 550
+    assert len(betweenness_weak) == 550
+    assert len(in_degree_G0) == 550
+    assert len(out_degree_G0) == 550
+    assert len(in_degree_G0_weak) == 550
+    assert len(out_degree_G0_weak) == 550
+    

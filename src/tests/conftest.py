@@ -43,6 +43,10 @@ def define_path_day3():
     return './test_data/edgelist_days/edgelist_w1_2022-02-03.txt'
 
 @pytest.fixture
+def define_path_war():
+    return './test_data/WarTweets.pkl.gz'
+
+@pytest.fixture
 def read_com_of_user_days(define_com_of_user_days):
     with open(define_com_of_user_days,'rb') as f: 
         com_of_user_days=pickle.load(f)
@@ -65,6 +69,13 @@ def read_file_G(define_stor_dir):
                                        nodetype=str)
     return G
         
+@pytest.fixture
+def read_file_components_weak():
+    G=nx.read_weighted_edgelist('./test_data/component_weak.txt',
+                                delimiter='\t',
+                                create_using=nx.DiGraph,nodetype=str)
+    return G
+
 @pytest.fixture
 def read_file_com_of_user(define_com_of_user):
     with open(define_com_of_user,'rb') as f: 
