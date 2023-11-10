@@ -367,11 +367,17 @@ def test_read_cleaned_war_data(define_path_war):
     assert set(df.columns) == {'created_at', 'created_at_days', 'id', 'lang', 'retweeted_status.id',
 'retweeted_status.user.id', 'retweeted_text', 'text', 'url', 'url_domain', 'user', 'user.screen_name'}
     
-def test_sort_data():
-    assert 1
+def test_sort_data(read_file_G,read_betweenness):
+    nodes, in_degreeG0, out_degreeG0, betweenessG0 = sort_data(read_file_G,read_betweenness)
+    assert len(nodes) == 10
+    assert len(in_degreeG0) == 10
+    assert len(out_degreeG0) == 10
+    assert len(betweenessG0) == 10
     
 def test_compute_betweeness(read_file_components_weak):
     betweenness, betweenness_weak, in_degree_G0, out_degree_G0, in_degree_G0_weak, out_degree_G0_weak = compute_betweeness(read_file_components_weak, read_file_components_weak)
+    #df = pd.DataFrame({'betweenness': betweenness})
+    #df.to_csv('betweenness.csv', index = False)
     assert len(betweenness) == 550
     assert len(betweenness_weak) == 550
     assert len(in_degree_G0) == 550

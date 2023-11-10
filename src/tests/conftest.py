@@ -47,6 +47,16 @@ def define_path_war():
     return './test_data/WarTweets.pkl.gz'
 
 @pytest.fixture
+def define_path_betweenness():
+    return './test_data/betweenness.csv'
+
+@pytest.fixture
+def read_betweenness(define_path_betweenness):
+    df = pd.read_csv(define_path_betweenness)
+    list_betweenness = df['betweenness'].to_list()
+    return list_betweenness
+
+@pytest.fixture
 def read_com_of_user_days(define_com_of_user_days):
     with open(define_com_of_user_days,'rb') as f: 
         com_of_user_days=pickle.load(f)
