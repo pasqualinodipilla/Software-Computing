@@ -36,7 +36,7 @@ python analysis_over_time.py
 |analysis_over_time.py | The goal of this part is to analyze the main properties of our network day by day from 01-02-2022 to 11-03-2022; in particular we compare day by day the modularity of our real network with the modularity of a random network obtained with a shuffling of the edges (configuration model), in order to demonstrate that our network is actually clustered. Then we evaluate the assortativity coefficient, the Gini index, the average age of activity and we identify the first two strongly and weakly connected components in order to find out if the giant component is made up of users belonging to a single community or not. The last thing is to evaluate the behaviour of the retweets for the top-scoring nodes, by considering the top users of group A and B on the basis of the total-degree. The goal is to establish if there is a change in percentage with respect to the total number of retweets. |
 
 
- At this point, from src directory we go in 'tests' directory and we run firstly 'conftest.py' and then 'test_functions.py':
+ At this point, from src directory we go in 'tests' directory and we run firstly 'conftest.py' and then 'test_functions.py'. Here there is another repository (test_data) containing the data used for testing:
  ```sh
 cd tests
 pytest conftest.py
