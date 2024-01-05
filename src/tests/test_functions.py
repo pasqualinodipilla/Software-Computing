@@ -52,8 +52,7 @@ def test_assign_communities(read_file_G, read_file_com_of_user):
     
     :param read_file_G: variable into which we store the network G_vac in networkX format.
     :param read_file_com_of_user: variable into which we store com_of_user that is a dictionary having
-    the Id user as key and the
-    community as value.
+    the Id user as key and the community as value.
     '''
    
     Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B=assign_communities(read_file_G, read_file_com_of_user)
@@ -120,7 +119,7 @@ def test_compute_randomized_modularity(get_groupA_groupB):
     '''
     This function is used to test the type of the output of compute_randomized_modularity() function:
     list_modularity_unweighted, list_modularity_weighted must be lists. Then, since in our case we 
-    perform 10 randomizations, we test if the lenght of the two lists is equal to 10.
+    perform n_rand =10 randomizations, we test if the lenght of the two lists is equal to n_rand.
     
     :param get_groupA_groupB: :param get_groupA_groupB: dictionary having as values a network G, and
     two lists group_A and group_B containing the users belonging to group_A and group_B respectively.
@@ -220,12 +219,27 @@ def test_swapping(n_swaps, create_list_edges):
     assert sum(list(edge_weight.values())) == len(create_list_edges)
     
 def test_create_df(create_input_for_df):
+    '''
+    This function tests that the dataframe in input (create_input_for_df), as an example, has 2 rows
+    and 2 columns.
+    
+    :param create_input_for_df: dataframe used as an example in conftest.py.
+    '''
     df = create_df(create_input_for_df['col_names'], create_input_for_df['list_content'])
     
     assert len(df) == 2
     assert len(df.columns) == 3 
     
 def test_filter_top_users(input_test_filter_top_users):
+    '''
+    This function tests that the dataframe that is output of the filter_top_users function
+    has two rows in the case of community A and top_users_fraction parameter = 0.5 and three rows
+    in the case of community B and top_users_fraction parameter = 0.5. In addition by running this
+    function in another notebook with the same input (input_test_filter_top_users) we tested the
+    expected values in the two cases.
+    
+    :param input_test_filter_top_users: dataframe in input, defined in conftest.py.
+    '''
     #test_filter_top_users for community A and top_users_fraction parameter = 0.5
     df_top = filter_top_users(input_test_filter_top_users, 'A', 0.5)
     assert len(df_top) == 2
@@ -237,6 +251,13 @@ def test_filter_top_users(input_test_filter_top_users):
     assert set(df_top['total-degree'].tolist()) == {11,9,6} 
     
 def test_mixing_matrix_manipulation(input_mixing_matrix_manipulation):
+    '''
+    This function tests that the dataframes in output of the mixing_matrix_manipulation function have
+    2 rows and 2 columns and by defining with df3 and df4 the expected output for the first and second
+    run, we impose that they actually coincide with df1 and df2.
+    
+    :param input_mixing_matrix_manipulation: dataframe in input defined in conftest.py.
+    '''
     df1, df2 = mixing_matrix_manipulation(input_mixing_matrix_manipulation)
     assert len(df1.columns) == 2
     assert len(df1) == 2
@@ -255,6 +276,15 @@ def test_mixing_matrix_manipulation(input_mixing_matrix_manipulation):
     assert df2.loc['B', 'B'] == df4.loc['B', 'B']
     
 def test_compute_clustering(read_file_G):
+    '''
+    Since with compute_clustering we are going to evaluate the clustering value for each node
+    according to a graph, that in our simple case is read_file_G, and since in our case we would
+    expect 10 nodes that have a label from 0 to 9 in strings, we assert that the nodes belonging 
+    to the graph have these labelled nodes and in addition we assert that the total number of nodes
+    and of clustering values is 10.
+  
+    :param read_file_G: graph used as an example and defined in conftest.py.
+    '''
     nodes, clustering = compute_clustering(read_file_G)
     
     assert set(nodes) == set([str(i) for i in range(10)])
@@ -264,11 +294,28 @@ def test_compute_clustering(read_file_G):
     assert len(clustering) == 10
     
 def test_col_retweet_network(dataframe_retweet, dataframe_retweet2):
+    '''
+    In this case we test that the output of col_retweet_network has 3 rows and that the expected
+    output, given by dataframe_retweet2, is actually equal to df.
+    
+    :param dataframe_retweet: dataframe defined in conftest.py
+    :param dataframe_retweet2: dataframe defined in conftest.py
+    '''
     df = col_retweet_network(dataframe_retweet)
     assert len(df) == 3
     assert df.equals(dataframe_retweet2)
     
 def test_get_daily_components(read_file_G_days,read_com_of_user_days):
+    '''
+    This function tests that the lenght of the lists containing the nodes belonging to the first
+    and second strong e weak components are all equal to three. then we test that the output of the
+    get_daily_components function actually corresponds to the expected values.
+    
+    :param read_file_G_days: list contaning 3 networks, each one for a different day, defined in
+    conftest.py as an example to test the function.
+    :param read_com_of_user_days: variable into which we store com_of_user that is a dictionary having
+    the Id user as key and the community as value for each day.
+    '''
     nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak = get_daily_components(read_file_G_days,read_com_of_user_days)
     
     assert (len(nodes_group_A_G0)==3)&(len(nodes_group_B_G0)==3)&(len(nodes_group_A_G1)==3)&(len(nodes_group_B_G1)==3)&(len(nodes_group_A_G0_weak)==3)&(len(nodes_group_B_G0_weak)==3)&(len(nodes_group_A_G1_weak)==3)&(len(nodes_group_B_G1_weak)==3)
@@ -282,6 +329,15 @@ def test_get_daily_components(read_file_G_days,read_com_of_user_days):
     assert set(nodes_group_B_G1_weak) == {15, 38, 31}
     
 def test_get_daily_modularity(read_file_G_days,read_com_of_user_days):
+    '''
+    This function tests that the lenght of the lists that are output of the get_daily_modularity
+    function is actually equal to three and that the output values correspond to the expected values.
+    
+    :param read_file_G_days: list contaning 3 networks, each one for a different day, defined in
+    conftest.py as an example to test the function.
+    :param read_com_of_user_days: variable into which we store com_of_user that is a dictionary having
+    the Id user as key and the community as value for each day.
+    '''
     mod_unweighted_file, mod_weighted_file, random_mod_unweighted_file, random_mod_weighted_file, nodes_group_A, nodes_group_B = get_daily_modularity(read_file_G_days,read_com_of_user_days)
         
     assert len(mod_unweighted_file) == 3
@@ -298,11 +354,25 @@ def test_get_daily_modularity(read_file_G_days,read_com_of_user_days):
     assert set(nodes_group_B) == {419, 332, 487}
     
 def test_get_daily_assortativity(read_file_G_days):
+    '''
+    This function tests that the list output of the get_daily_assortativity function has lenght equal
+    to three and that the output values correspond to the expected values.
+    
+    :param read_file_G_days: list contaning 3 networks, each one for a different day, defined in
+    conftest.py as an example to test the function.
+    '''
     assortativity_values = get_daily_assortativity(read_file_G_days)
     assert len(assortativity_values) == 3
     assert set(assortativity_values) == {-0.19, -0.15, -0.17}
     
 def test_daily_Gini_in_out(read_file_G_days):
+    '''
+    This function tests that the lists output of the get_daily_Gini_in_out function have lenght equal
+    to three and that the output values correspond to the expected values.
+    
+    :param read_file_G_days: list contaning 3 networks, each one for a different day, defined in
+    conftest.py as an example to test the function.
+    '''
     Gini_in_values, Gini_out_values = get_daily_Gini_in_out(read_file_G_days)
     assert len(Gini_in_values) == 3
     assert len(Gini_out_values) == 3
@@ -310,11 +380,24 @@ def test_daily_Gini_in_out(read_file_G_days):
     assert set(Gini_out_values) == {0.422, 0.304, 0.294}
     
 def test_get_daily_nodes(read_file_G_days):
+    '''
+    This function tests that the list output of the get_daily_nodes function has lenght equal
+    to three and that the output values correspond to the expected values.
+    
+    :param read_file_G_days: list contaning 3 networks, each one for a different day, defined in
+    conftest.py as an example to test the function.
+    '''
     nodes_original = get_daily_nodes(read_file_G_days)
     assert len(nodes_original) == 3
     assert set(nodes_original) == {646, 822, 967}
     
 def test_words_frequency(dataframe_retweet):
+    '''
+    This function tests that the two lists output of the function words_frequency have lenght 3, and
+    then we test that the expected values and strings correspond to the actual output of the function.
+    
+    :dataframe_retweet: dataframe defined in conftest.py
+    '''
     values_list, key_list = words_frequency(dataframe_retweet, [2])
     assert len(key_list) == 3
     assert len(values_list) == 3
@@ -322,6 +405,13 @@ def test_words_frequency(dataframe_retweet):
     assert set(values_list) == {3,2,1}
     
 def test_degree_distributions(read_file_G):
+    '''
+    This function tests that the lenght of the lists that are output of the degree_distributions 
+    function is equal to 10 and then we test that the expected values correspond to the output of
+    the function.
+    
+    :read_file_G: variable into which we store the network used for testing in networkX format.
+    '''
     in_degree, out_degree = degree_distributions(read_file_G)
     assert len(in_degree) == 10
     assert len(out_degree) == 10
@@ -329,6 +419,13 @@ def test_degree_distributions(read_file_G):
     assert set(out_degree) == {1, 2, 3, 4}
     
 def test_create_date_store(define_path_day):
+    '''
+    This function tests that the lenght of the two lists output of create_date_store have lenght 3,
+    that the expected values for the first list correspond to the right dates that are output of the
+    function, and that the elements of the second list are graphs.
+    
+    :define_path_day: path to follow in order to test this function.
+    '''
     date_store, Gvac_days = create_date_store(define_path_day)
     
     assert len(date_store) == 3
@@ -339,10 +436,18 @@ def test_create_date_store(define_path_day):
     assert type(Gvac_days[2]) == nx.DiGraph
     
 def test_age_of_activity(read_file_G_days):
+    '''
+    This function tests that the lenght of the output of the age_of_activity function is equal to 3.
+    Then we test that the expected values correspond to the output, in particular we are calculating
+    the number of active nodes in a certain day by selecting only the key of the dictionary.
+    
+    :param read_file_G_days: list contaning 3 networks, each one for a different day, defined in
+    conftest.py as an example to test the function.
+    '''
     nodes_age_in, nodes_age_out = age_of_activity(read_file_G_days)
     assert len(nodes_age_in) == 3
     assert len(nodes_age_out) == 3
-    assert len(nodes_age_in[0].keys()) == 211
+    assert len(nodes_age_in[0].keys()) == 211 
     assert len(nodes_age_in[1].keys()) == 348
     assert len(nodes_age_in[2].keys()) == 516
     assert len(nodes_age_out[0].keys()) == 440
@@ -350,24 +455,50 @@ def test_age_of_activity(read_file_G_days):
     assert len(nodes_age_in[2].keys()) == 516
     
 def test_n_tweets_over_time(dataframe_retweet):
+    '''
+    This function tests that the column of the dataframe (output of the function n_tweets_over_time) 
+    is only one and has also a specific label and then we test the relevant index that is represented
+    by the date. then we test the expected values during the different days.
+    
+    :dataframe_retweet: dataframe defined in conftest.py
+    '''
     df_tweets = n_tweets_over_time(dataframe_retweet)
     assert set(df_tweets.columns) == {'Ntweets'}
     assert set(df_tweets.index) == {pd.to_datetime('2022-06-10'), pd.to_datetime('2022-03-02'), pd.to_datetime('2021-10-28')}
     assert set(df_tweets['Ntweets'].to_list()) == {1,2,3}
     
 def test_n_tweets_over_time_selected_community(dataframe_retweet, df_top):
+    '''
+    This function tests the same things that have been tested in the previous function.
+    
+    :dataframe_retweet: dataframe defined in conftest.py
+    :df_top: dataframe defined in conftest.py
+    '''
     df_tweets = n_tweets_over_time_selected_community(dataframe_retweet.rename(columns = {'user.id':'user'}), df_top, 'A')
     assert set(df_tweets.columns) == {'A'}
     assert set(df_tweets.index) == {pd.to_datetime('2022-06-10'), pd.to_datetime('2022-03-02')}
     assert set(df_tweets['A'].to_list()) == {2,3}
     
 def test_read_cleaned_war_data(define_path_war):
+    '''
+    This function tests the right lenght of the dataframe output of the function and then it tests
+    that the label of each column is the correct one.
+    
+    :define_path_war: path to follow in order to test this function.
+    '''
     df = read_cleaned_war_data(define_path_war)
     assert len(df) == 354059
     assert set(df.columns) == {'created_at', 'created_at_days', 'id', 'lang', 'retweeted_status.id',
 'retweeted_status.user.id', 'retweeted_text', 'text', 'url', 'url_domain', 'user', 'user.screen_name'}
     
 def test_sort_data(read_file_G,read_betweenness):
+    '''
+    This function tests that the lenght of the lists output of the sort_data function is 10 as 
+    expected.
+    
+    :read_file_G: variable into which we store the network used for testing in networkX format.
+    :read_betweenness: list containing the betweenness values.
+    '''
     nodes, in_degreeG0, out_degreeG0, betweenessG0 = sort_data(read_file_G,read_betweenness)
     assert len(nodes) == 10
     assert len(in_degreeG0) == 10
@@ -375,9 +506,15 @@ def test_sort_data(read_file_G,read_betweenness):
     assert len(betweenessG0) == 10
     
 def test_compute_betweeness(read_file_components_weak):
+    '''
+    This function tests that the lenght of all the lists that are output of the compute_betweeness
+    function is 550 as expected.
+    
+    :read_file_components_weak: graph in networkX format representing the weak connected components
+    of a network taken as example.
+    '''
     betweenness, betweenness_weak, in_degree_G0, out_degree_G0, in_degree_G0_weak, out_degree_G0_weak = compute_betweeness(read_file_components_weak, read_file_components_weak)
-    #df = pd.DataFrame({'betweenness': betweenness})
-    #df.to_csv('betweenness.csv', index = False)
+   
     assert len(betweenness) == 550
     assert len(betweenness_weak) == 550
     assert len(in_degree_G0) == 550

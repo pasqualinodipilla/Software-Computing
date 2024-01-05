@@ -14,7 +14,7 @@ import datetime
 import string
 import copy
 from sklearn.metrics import roc_auc_score
-from configurations import SEED, top_user_fraction, PATH_WAR, DIR_FILES, min_rt
+from configurations import SEED, PATH_WAR, DIR_FILES, min_rt, n_rand, k_betweeness_strong, k_betweeness_weak
 
 def assign_communities(G, com_of_user):
     '''
@@ -38,19 +38,16 @@ def assign_communities(G, com_of_user):
         com_of_user.setdefault(node,'')
     nx.set_node_attributes(G, com_of_user, "community")
     
-    #We define group_A if the user belongs to community A, group_B  if  the user belongs to community B and group_null if the
-    #users don't belong to one of the two groups.
+    #We define group_A if the user belongs to community A, group_B  if  the user belongs to community B 
     group_A = set()
     group_B = set()
-    group_null = set()
     
     for user in nx.nodes(G):
         if com_of_user[user]=='A':
             group_A.add(user)
         elif com_of_user[user]=='B':
             group_B.add(user)
-        elif com_of_user[user]=='':
-            group_null.add(user)
+        
     
     #We consider the subgraph including the users belonging to group A or group B and the users with a degree greater than 0.
     Gvac_subgraph = G.subgraph(list(group_A|group_B))
@@ -134,11 +131,9 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
             list_edges.append(edge)
     #i=0
 
-    #Let's create an array of indexes in which each index corresponds to an element of list_edges
-    array_index = np.arange(len(list_edges))
     #specify random seed
     np.random.seed(seed)
-    list_edges, edge_weight = swapping(n_swaps, array_index, list_edges)
+    list_edges, edge_weight = swapping(n_swaps, list_edges)
     
     #We create the randomized network and we evaluate the modularity in the unweighted 
     #and weighted cases.
@@ -149,16 +144,19 @@ def randomize_network(seed, n_swaps, Gvac, group_A, group_B):
                                                   [group_A,group_B], weight = 'weight')
     return modularity_unweighted, modularity_weighted, Gvac_shuffle
 
-def swapping(n_swaps, array_index, list_edges):
+def swapping(n_swaps, list_edges):
     '''
     This function performs the swapping of the edges in order to obtain the shuffled network.
-    param: integer number representing the number of swaps.
-    param list_edges: list where we take into account any possible repetition of the edges.
-    param array_index: array of indexes in which each index corresponds to an element of list_edges
     
-    return list_edges: list where we take into account any possible repetition of the edges.
-    return edge_weight: dictionary having as key the edge and as value the number of times it appears.
+    :param: integer number representing the number of swaps.
+    :param list_edges: list where we take into account any possible repetition of the edges.
+    :param array_index: array of indexes in which each index corresponds to an element of list_edges
+    
+    :return list_edges: list where we take into account any possible repetition of the edges.
+    :return edge_weight: dictionary having as key the edge and as value the number of times it appears.
     '''
+    #Let's create an array of indexes in which each index corresponds to an element of list_edges
+    array_index = np.arange(len(list_edges))
     i=0
     while(i<n_swaps):
         #We choose two indexes randomly
@@ -187,21 +185,20 @@ def compute_randomized_modularity(Gvac_subgraph, group_A, group_B):
     Gvac_subgraph (that will be obtained from Assign_Communities) and two lists (that will contain the users belonging to group A 
     or group B).
     
-    :param Gvac_subgraph: subgraph of G in networkX format containing the nodes belonging 
-    to group A and group B with a degree>0
+    :param Gvac_subgraph: subgraph of G in networkX format containing the nodes belonging to group A and group B with a degree>0
     :param group_A: list of strings containing the Id users of group A.
     :param group_B: list of strings containing the Id users of group B.
     
-    :return list_modularity_unweighted: list containing the modularity values evaluated after
-    a certain number of randomization, in this case 10, in the unweighted case.
-    :return list_modularity_weighted: list containing the modularity values evaluated after
-    a certain number of randomization, in this case 10, in the weighted case.
+    :return list_modularity_unweighted: list containing the modularity values evaluated after a certain number of randomization,
+    in this case 10, in the unweighted case.
+    :return list_modularity_weighted: list containing the modularity values evaluated after a certain number of randomization,
+    in this case 10, in the weighted case.
     '''
     list_modularity_unweighted = []
     list_modularity_weighted = []
     N = len(Gvac_subgraph.edges())
     #We repeat the randomization a certain number of times, in this case 10.
-    for i in range(10):
+    for i in range(n_rand):
         start_time = datetime.datetime.now()
         modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(SEED,N,Gvac_subgraph,
                                                                        group_A, group_B)
@@ -252,47 +249,43 @@ def compute_connected_component(Gvac_subgraph, group_A, group_B, weak_or_strong)
     group_B_G1 = list(set(group_B) & set(list(G1.nodes())))
     return group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1
 
-def gini(x): 
+def gini(my_list): 
     '''
     Function returning the Gini coefficient on a list x.
     
-    Param x: list that will contain the daily in- or out-degree.
+    :param my_list: list that will contain the daily in- or out-degree.
     
-    return: float value reprenting the Gini index based on the bottom eq in the following link:
+    :return: float value reprenting the Gini index based on the bottom eq in the following link:
     http://www.statsdirect.com/help/generatedimages/equations/equation154.svg, from
     http://www.statsdirect.com/help/default.htm#nonparametric_methods/gini.htm .
     '''
-    
+    x = np.array(my_list)
     total = 0
-    if len(x) >= 1:
-        i = 0
-        for num in x:
-            y = num * (2*i-len(x)-1) / len(x)*sum(x)
-            total += y
-            i += 1
-        return total
-    else:
-        return 0
-    
+    for i, xi in enumerate(x[:-1], 1):
+        total += np.sum(np.abs(xi - x[i:]))
+    arr = total / (len(x)**2 * np.mean(x))
+    gini_index = arr.tolist()
+    return gini_index
+
 def compute_betweeness(G0, G0_weak):
     '''
     This function computes the betweeness centrality by considering the first strongly and weakly connected components; in
     addition it returns four lists representing the in- out-degree for the first strongly and weakly connected components.
     
-    param G0: subgraph of G in networkX format containing the nodes belonging to the first strongly connected component.
-    param G0_weak: subgraph of G in networkX format containing the nodes belonging to the first weakly connected component.
+    :param G0: subgraph of G in networkX format containing the nodes belonging to the first strongly connected component.
+    :param G0_weak: subgraph of G in networkX format containing the nodes belonging to the first weakly connected component.
     
-    return betweenness: dictionary of nodes with betweenness centrality as the value, in the case of the first strongly 
+    :return betweenness: dictionary of nodes with betweenness centrality as the value, in the case of the first strongly 
     connected component.
-    return betweenness_weak: dictionary of nodes with betweenness centrality as the value, in the case of the first weakly
+    :return betweenness_weak: dictionary of nodes with betweenness centrality as the value, in the case of the first weakly
     connected component.
-    return in_degree_G0: list containing the in-degree for the nodes of the first strongly connected component.
-    return out_degree_G0: list containing the out-degree for the nodes of the first strongly connected component.
-    return in_degree_G0_weak: list containing the in-degree for the nodes of the first weakly connected component.
-    return out_degree_G0_weak: list containing the out-degree for the nodes of the first weakly connected component.
+    :return in_degree_G0: list containing the in-degree for the nodes of the first strongly connected component.
+    :return out_degree_G0: list containing the out-degree for the nodes of the first strongly connected component.
+    :return in_degree_G0_weak: list containing the in-degree for the nodes of the first weakly connected component.
+    :return out_degree_G0_weak: list containing the out-degree for the nodes of the first weakly connected component.
     '''
-    betweenness = nx.betweenness_centrality(G0, k=500)
-    betweenness_weak = nx.betweenness_centrality(G0_weak, k=60)
+    betweenness = nx.betweenness_centrality(G0, k_betweeness_strong)
+    betweenness_weak = nx.betweenness_centrality(G0_weak, k_betweeness_weak)
     in_degree_G0 = [G0.in_degree(node) for node in nx.nodes(G0)]
     out_degree_G0 = [G0.out_degree(node) for node in nx.nodes(G0)]
     in_degree_G0_weak = [G0_weak.in_degree(node) for node in nx.nodes(G0_weak)]
@@ -305,14 +298,15 @@ def sort_data(G0, betweenness):
     '''
     This function return 4 sorted lists.
     
-    param G0: subgraph of G in networkX format containing the nodes belonging to the first strongly connected component.
-    param betweenness: dictionary of nodes with betweenness centrality as the value, in the case of the first strongly 
+    :param G0: subgraph of G in networkX format containing the nodes belonging to the first strongly connected component.
+    :param betweenness: dictionary of nodes with betweenness centrality as the value, in the case of the first strongly 
     connected component.
     
-    return nodes: sorted list containing the user Id of each node. 
-    return in_degreeG0: sorted list containing the in-degree of each node of the first strongly connected component.
-    return out_degreeG0: sorted list containing the out-degree of each node of the first strongly connected component.
-    return betweenessG0: sorted list containing the betweeness centrality of each node of the first strongly connected component.
+    :return nodes: sorted list containing the user Id of each node. 
+    :return in_degreeG0: sorted list containing the in-degree of each node of the first strongly connected component.
+    :return out_degreeG0: sorted list containing the out-degree of each node of the first strongly connected component.
+    :return betweenessG0: sorted list containing the betweeness centrality of each node of the first strongly connected
+    component.
     '''
     nodes = []
     in_degreeG0 = []
@@ -323,7 +317,7 @@ def sort_data(G0, betweenness):
         nodes.append(node)
         in_degreeG0.append(G0.in_degree(node))
         out_degreeG0.append(G0.out_degree(node))
-        betweenessG0.append(betweenness[node])
+        betweenessG0.append(betweenness[int(node)])
     
     #The zip() function takes the iterables, aggregates them in a tuple, and returns it.
     #The sorted() function sorts all the elements of the tuple in ascending order.
@@ -335,10 +329,10 @@ def create_df(col_names, lists):
     '''
     This function creates a dataframe.
     
-    param col_names: string containing the name of each column of the dataframe
-    param lists: lists containing specific information, for example the in-degree or the out-degree of each user.
+    :param col_names: string containing the name of each column of the dataframe
+    :param lists: lists containing specific information, for example the in-degree or the out-degree of each user.
     
-    return df: general dataframe.
+    :return df: general dataframe.
     '''
     df = pd.DataFrame()
     for i, name in enumerate(col_names):
@@ -346,15 +340,15 @@ def create_df(col_names, lists):
     return df
 
 
-def filter_top_users(df_users, label_community):
+def filter_top_users(df_users, label_community, top_user_fraction):
     '''
     This function returns a dataframe containing the top-users by taking into account the the total degree as in-degree+out-
     degree.
     
-    param df_users: dataframe containing the user Id, the community, the in- and out-degree.
-    param label_community: string representing the community: A or B.
+    :param df_users: dataframe containing the user Id, the community, the in- and out-degree.
+    :param label_community: string representing the community: A or B.
     
-    return df_top: dataframe containing the top-users
+    :return df_top: dataframe containing the top-users
     '''
     df_users_community = df_users[df_users.community==label_community]
     number_top_users = int(len(df_users_community)*top_user_fraction)
@@ -371,9 +365,9 @@ def read_cleaned_war_data(PATH_WAR):
     total number of tweets, the number of tweets in group A and in group B and I rename the number of the column to make it more
     explanatory.
     
-    param PATH_WAR: file with all the retweets.
+    :param PATH_WAR: file with all the retweets.
     
-    return df: manipulated dataframe df 
+    :return df: manipulated dataframe df 
     '''
     
     df=pd.read_pickle(PATH_WAR)
@@ -390,11 +384,11 @@ def n_tweets_over_time_selected_community(df, df_top, label_community):
     total number of tweets, the number of tweets in group A and in group B and I rename the number of the column to make it more
     explanatory.
     
-    param df: dataframe obtained from read_cleaned_war_data function.
-    param df_top: dataframe containing the top-users
-    param label_community: string corresponding to the community A or B.
+    :param df: dataframe obtained from read_cleaned_war_data function.
+    :param df_top: dataframe containing the top-users
+    :param label_community: string corresponding to the community A or B.
     
-    return df_tweets: dataframe containing the number of tweets over time.
+    :return df_tweets: dataframe containing the number of tweets over time.
     '''
     dGroup_time = df_top.set_index('user').join(df.set_index('user'))
     dGroup_time = dGroup_time[dGroup_time['created_at_days']<(dGroup_time['created_at_days'].max()-pd.Timedelta('1 days'))]
@@ -407,9 +401,9 @@ def n_tweets_over_time(df):
     This function returns a dataframe with an additive column with respect to the dataframe in input containing the number of
     tweets for each day.
     
-    param df: dataframe
+    :param df: dataframe
     
-    param df_tweets: manipulated dataframe with an additive column with respect to df, containing the number of tweets for each
+    :param df_tweets: manipulated dataframe with an additive column with respect to df, containing the number of tweets for each
     day.
     '''
     
@@ -436,10 +430,10 @@ def age_of_activity(Gvac_days):
     day. In this case we add a day to the activity of that node;
     - we repeat the same procedure in the case of the out-degree.
     
-    param Gvac_days: list containing the users data day by day in the time span considered.
+    :param Gvac_days: list containing the users data day by day in the time span considered.
     
-    return nodes_age_in: list containing the age of activity of each node taking into account the in-degree.
-    return nodes_age_out: list containing the age of activity of each node taking into account the out-degree.
+    :return nodes_age_in: list containing the age of activity of each node taking into account the in-degree.
+    :return nodes_age_out: list containing the age of activity of each node taking into account the out-degree.
     '''
     #The following lists will be lists of dictionaries in order to evaluate the
     #average age of activity.
@@ -474,10 +468,10 @@ def create_date_store(DIR_FILES):
     Function that, after having read the txt files day by day,  orders them in time and creates a list (date_store) containing
     all the dates in the time span considered. Then we read the edgelists day by day and we store them in a list (Gvac_days).
     
-    param DIR_FILES: file containing all the dates to be selected.
+    :param DIR_FILES: file containing all the dates to be selected.
     
-    return date_store: list contanining all the dates in the time span considered.
-    return Gvac_days: list containing the users data day by day in the time span considered.
+    :return date_store: list contanining all the dates in the time span considered.
+    :return Gvac_days: list containing the users data day by day in the time span considered.
     '''
     listfiles=[file for file in os.listdir(DIR_FILES) if file [-3:] == 'txt'] #let's select all the .txt files.
     date_store = []
@@ -508,10 +502,10 @@ def mixing_matrix_manipulation(df):
     In this way we get the average behaviour if a link starts from community A or from community B. We will do these step
     in the weighted and unweighted cases.
     
-    param df: dataframe representing the mixing matrix.
+    :param df: dataframe representing the mixing matrix.
     
-    return df1: dataframe representing a first manipulation of the mixing matrix.
-    return df2: dataframe representing a second manipulation of the mixing matrix.
+    :return df1: dataframe representing a first manipulation of the mixing matrix.
+    :return df2: dataframe representing a second manipulation of the mixing matrix.
     '''
     tot_links = df.sum().sum()
     df1 = df/float(tot_links)
@@ -524,10 +518,10 @@ def degree_distributions(G):
     '''
     We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and group B.
     
-    param G: network in networkX format.
+    :param G: network in networkX format.
     
-    return in_degree: list containing the in-degree values.
-    return out_degree: list containing the out-degree values.
+    :return in_degree: list containing the in-degree values.
+    :return out_degree: list containing the out-degree values.
     '''
     in_degree = [G.in_degree(node) for node in nx.nodes(G)]
     out_degree = [G.out_degree(node) for node in nx.nodes(G)]
@@ -540,11 +534,11 @@ def words_frequency(df, group):
     to group A and group B share a similar opinion about a different topic, for example we would expect that users belonging
     to group A are pro Ukraine and users belonging to group B are pro Russia.
     
-    Param df: dataframe containing the useful information as user id, retweeted status of each user and so on.
-    param group: list of strings containing the Id users of a certain group (group A or group B).
+    :param df: dataframe containing the useful information as user id, retweeted status of each user and so on.
+    :param group: list of strings containing the Id users of a certain group (group A or group B).
     
-    return value_list: list containing the occurrence or frequency of the last mostly used words.
-    return key_list: list containing the last mostly used words.
+    :return value_list: list containing the occurrence or frequency of the last mostly used words.
+    :return key_list: list containing the last mostly used words.
     '''
     
     df_sel=df[['text', 'retweeted_status.user.id']].drop_duplicates() #It returns DataFrame with duplicate rows removed.
@@ -572,9 +566,9 @@ def get_daily_nodes(Gvac_days):
     '''
     This function returns the daily number of nodes for each network day by day in the time span considered.
     
-    param Gvac_days: list containing the users data day by day in the time span considered.
+    :param Gvac_days: list containing the users data day by day in the time span considered.
     
-    return nodes_original: list containing the number of nodes or users belonging to the network day by day.
+    :return nodes_original: list containing the number of nodes or users belonging to the network day by day.
     '''
     nodes_original = []
     for Gvac in Gvac_days:
@@ -586,10 +580,10 @@ def get_daily_Gini_in_out(Gvac_days):
     This function returns the values of Gini index day by day in the time span considered taking into account respectively the 
     in-degree or the out-degree distribution.
     
-    param Gvac_days: list containing the users data day by day in the time span considered.
+    :param Gvac_days: list containing the users data day by day in the time span considered.
     
-    return Gini_in_values: list containing the Gini index values day by day calculated taking into account the in-degree.
-    return Gini_out_values: list containing the Gini index values day by day calculated taking into account the out-degree.
+    :return Gini_in_values: list containing the Gini index values day by day calculated taking into account the in-degree.
+    :return Gini_out_values: list containing the Gini index values day by day calculated taking into account the out-degree.
     '''
     Gini_in_values = []
     Gini_out_values = []
@@ -598,22 +592,22 @@ def get_daily_Gini_in_out(Gvac_days):
         in_degree_original, out_degree_original = degree_distributions(Gvac) 
         Gini_in = gini(in_degree_original)
         Gini_out = gini(out_degree_original)
-        Gini_in_values.append(Gini_in)
-        Gini_out_values.append(Gini_out)
+        Gini_in_values.append(round(Gini_in,3))
+        Gini_out_values.append(round(Gini_out,3))
     return Gini_in_values, Gini_out_values
 
 def get_daily_assortativity(Gvac_days):
     '''
     This function returns the values of assortativity day by day in the time span considered.
     
-    param Gvac_days: list containing the users data day by day in the time span considered.
+    :param Gvac_days: list containing the users data day by day in the time span considered.
     
-    return assortativity_values: list containing the assortativity values day by day.
+    :return assortativity_values: list containing the assortativity values day by day.
     '''
     assortativity_values = []
     for Gvac in Gvac_days:
         assortativity=nx.degree_assortativity_coefficient(Gvac)
-        assortativity_values.append(assortativity)    
+        assortativity_values.append(round(assortativity,3))    
     return assortativity_values
 
 def get_daily_modularity(Gvac_days, com_of_user):
@@ -622,15 +616,15 @@ def get_daily_modularity(Gvac_days, com_of_user):
     or in the weighted case. In addition it returns the number of nodes belonging to group A and the number of nodes belonging to
     group B day by day.
     
-    param Gvac_days: list containing the users data day by day in the time span considered.
-    param com_of_user: com_of_user is a dictionary having the Id user as key and the community as value.
+    :param Gvac_days: list containing the users data day by day in the time span considered.
+    :param com_of_user: com_of_user is a dictionary having the Id user as key and the community as value.
     
-    return mod_unweighted_file: list containing the modularity of the real network day by day in the unweighted case.
-    return mod_weighted_file: list containing the modularity of the real network day by day in the weighted case.
-    return random_mod_unweighted_file: list containing the modularity of the shuffled network day by day in the unweighted case.
-    return random_mod_weighted_file: list containing the modularity of the shuffled network day by day in the weighted case.
-    return nodes_group_A: list containing the number of nodes belonging to group A day by day.
-    return nodes_group_B: list containing the number of nodes belonging to group B day by day.
+    :return mod_unweighted_file: list containing the modularity of the real network day by day in the unweighted case.
+    :return mod_weighted_file: list containing the modularity of the real network day by day in the weighted case.
+    :return random_mod_unweighted_file: list containing the modularity of the shuffled network day by day in the unweighted case.
+    :return random_mod_weighted_file: list containing the modularity of the shuffled network day by day in the weighted case.
+    :return nodes_group_A: list containing the number of nodes belonging to group A day by day.
+    :return nodes_group_B: list containing the number of nodes belonging to group B day by day.
     '''
     mod_unweighted_file = []
     mod_weighted_file = []
@@ -644,8 +638,8 @@ def get_daily_modularity(Gvac_days, com_of_user):
         list_modularity_unweighted,list_modularity_weighted=compute_randomized_modularity(Gvac_subgraph, group_A, group_B)
         mod_unweighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B], weight = None)
         mod_weighted=nx.community.modularity(Gvac_subgraph, [group_A,group_B])
-        mod_unweighted_file.append(mod_unweighted)
-        mod_weighted_file.append(mod_weighted)
+        mod_unweighted_file.append(round(mod_unweighted,3))
+        mod_weighted_file.append(round(mod_weighted,3))
         random_mod_unweighted_file.append(list_modularity_unweighted)
         random_mod_weighted_file.append(list_modularity_weighted)
         nodes_group_A.append(len(group_A))
@@ -658,17 +652,17 @@ def get_daily_components(Gvac_days, com_of_user):
     This function returns the first strongly and weakly connected components including nodes of group A or group B and the 
     second strongly and weakly connected components including nodes of group A or group B.
     
-    param Gvac_days: list containing the users data day by day in the time span considered.
-    param com_of_user: com_of_user is a dictionary having the Id user as key and the community as value.
+    :param Gvac_days: list containing the users data day by day in the time span considered.
+    :param com_of_user: com_of_user is a dictionary having the Id user as key and the community as value.
     
-    return nodes_group_A_G0: list containing the nodes of group A belonging to the first strongly connected component.
-    return nodes_group_B_G0: list containing the nodes of group B belonging to the first strongly connected component.
-    return nodes_group_A_G1: list containing the nodes of group A belonging to the second strongly connected component.
-    return nodes_group_B_G1: list containing the nodes of group B belonging to the second strongly connected component.
-    return nodes_group_A_G0_weak: list containing the nodes of group A belonging to the first weakly connected component.
-    return nodes_group_B_G0_weak: list containing the nodes of group B belonging to the first weakly connected component.
-    return nodes_group_A_G1_weak: list containing the nodes of group A belonging to the second weakly connected component.
-    return nodes_group_B_G1_weak: list containing the nodes of group A belonging to the second weakly connected component.
+    :return nodes_group_A_G0: list containing the nodes of group A belonging to the first strongly connected component.
+    :return nodes_group_B_G0: list containing the nodes of group B belonging to the first strongly connected component.
+    :return nodes_group_A_G1: list containing the nodes of group A belonging to the second strongly connected component.
+    :return nodes_group_B_G1: list containing the nodes of group B belonging to the second strongly connected component.
+    :return nodes_group_A_G0_weak: list containing the nodes of group A belonging to the first weakly connected component.
+    :return nodes_group_B_G0_weak: list containing the nodes of group B belonging to the first weakly connected component.
+    :return nodes_group_A_G1_weak: list containing the nodes of group A belonging to the second weakly connected component.
+    :return nodes_group_B_G1_weak: list containing the nodes of group A belonging to the second weakly connected component.
     '''
     nodes_group_A_G0 = []
     nodes_group_B_G0 = []
@@ -697,17 +691,15 @@ def get_daily_components(Gvac_days, com_of_user):
       
     return nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak
 
-def col_retweet_network(df, min_rt):
+def col_retweet_network(df):
     '''
     This function returns the dataframe used to build the retweet network where the relevant columns are user.id and
     retweeted_status.user.id. In fact, the first one is the retweeting user (x) and the second one the retweeted user (y) of the
     edge x->y.
     
-    param df: dataframe
-    param min_rt: integer being a parameter in configurations.py through which we set the minimum for the weight threshold for
-    edges to be considered (1 is the minimum -> keep edges with at least 1 retweet) 
+    :param df: dataframe 
     
-    return df_edgelist: dataframe containing the relevant columns user.id and retweeted_status.user.id.
+    :return df_edgelist: dataframe containing the relevant columns user.id and retweeted_status.user.id.
     '''
     list_col = ['user.id','retweeted_status.user.id']
     df_edgelist=df[list_col].copy()
@@ -721,10 +713,10 @@ def compute_clustering(Gvac):
     '''
     Here we evaluate the clustering coefficient.
     
-    param Gvac: network in networkX format.
+    :param Gvac: network in networkX format.
     
-    return nodes: list containing all the nodes of the network in input.
-    return clustering: list containing the clustering coefficient of each node.
+    :return nodes: list containing all the nodes of the network in input.
+    :return clustering: list containing the clustering coefficient of each node.
     '''
     lcc = nx.clustering(Gvac)
     nodes = []

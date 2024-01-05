@@ -27,7 +27,8 @@ from configurations import (
     PATH_MODULARITY,
     PATH_FREQUENCY,
     PATH_WAR,
-    DIR_FILES
+    DIR_FILES,
+    top_user_fraction
 )
 
 def main():
@@ -93,8 +94,8 @@ def main():
     
     #We define the top users of group A and group B on the basis of the total-degree (we are taking the 1%).
     
-    df_topA = filter_top_users(df_users, 'A')
-    df_topB = filter_top_users(df_users, 'B')
+    df_topA = filter_top_users(df_users, 'A', top_user_fraction)
+    df_topB = filter_top_users(df_users, 'B', top_user_fraction)
     df_topA.to_csv(PATH_FREQUENCY+'topUsersGroupA.csv', index=False)
     df_topB.to_csv(PATH_FREQUENCY+'topUsersGroupB.csv', index=False)
     
