@@ -40,8 +40,8 @@ def main():
     df3.to_csv(PATH_MIXING_MATRIX+'MixingVaccine5.csv', index=False)
     df4.to_csv(PATH_MIXING_MATRIX+'MixingVaccine6.csv', index=False)
     
-    #We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and B. We save them in a
-    #corresponding file.    
+    #We create 6 lists to store the in- out-degree of the nodes belonging
+    #to the whole network, group A and B. We save them in a corresponding file.    
     
     in_degree_original, out_degree_original = degree_distributions(Gvac)
     in_degree_group_A, out_degree_group_A = degree_distributions(Gvac_A)

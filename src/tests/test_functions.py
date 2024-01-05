@@ -105,11 +105,6 @@ def test_randomize_network(n_swaps, get_groupA_groupB):
     '''
     modularity_unweighted, modularity_weighted, Gvac_shuffle = randomize_network(SEED,n_swaps, get_groupA_groupB['G_subgraph'], get_groupA_groupB['group_A'], get_groupA_groupB['group_B'])
    
-    #edge_weight1 = nx.get_edge_attributes(cache.Gvac_subgraph,'weight')
-    #edge_weight1 = [edge_weight1[(node1, node2)] for (node1, node2) in edge_weight1]
-    #edge_weight2 = nx.get_edge_attributes(Gvac_shuffle,'weight')
-    #edge_weight2 = [edge_weight2[(node1, node2)] for (node1, node2) in edge_weight2]
-    #assert int(sum(edge_weight1)) == int(sum(edge_weight2))
     assert len(Gvac_shuffle.nodes()) == len(get_groupA_groupB['G_subgraph'].nodes())
     sum(list(nx.get_edge_attributes(Gvac_shuffle,'weight').values())) == sum(list(nx.get_edge_attributes(get_groupA_groupB['G_subgraph'],'weight').values()))
     assert type(modularity_unweighted) == float

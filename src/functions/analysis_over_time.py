@@ -45,7 +45,9 @@ def main():
     nodes_group_A_G0, nodes_group_B_G0, nodes_group_A_G1, nodes_group_B_G1, nodes_group_A_G0_weak, nodes_group_B_G0_weak, nodes_group_A_G1_weak, nodes_group_B_G1_weak= get_daily_components(Gvac_days, com_of_user)
    
     
-    #we store for the strong components and for the weak components the dates, the nodes of group A and B belonging to the first     #connected component, the nodes of group A and B belonging to the second connected component.
+#we store for the strong components and for the weak components the dates,
+#the nodes of group A and B belonging to the first connected component,
+#the nodes of group A and B belonging to the second connected component.
     
     df_components = create_df(['date_store', 'nodes_group_B_G0', 'nodes_group_A_G0', 'nodes_group_B_G1', 'nodes_group_A_G1'],
                              [date_store, nodes_group_B_G0, nodes_group_A_G0, nodes_group_B_G1, nodes_group_A_G1])
@@ -56,8 +58,9 @@ def main():
     df_components.to_csv(PATH_S_COMPONENTS+'Figure8.csv', index=False)
     df_components_weak.to_csv(PATH_W_COMPONENTS+'Figure9.csv', index=False)
     
-    #we store respectively the assortativity, the Gini index for in- and out- distributions, the nodes belonging to a single         #community of the war network and all the nodes belonging to our war network, the modularity of the real network and of the
-    #radomized one
+#we store respectively the assortativity, the Gini index for in- and out- distributions,
+#the nodes belonging to a single community of the war network and all the nodes belonging
+#to our war network, the modularity of the real network and of the randomized one
    
     df_assortativity = create_df(['date_store', 'assortativity_values'],[date_store, assortativity_values])
     df_gini = create_df(['date_store', 'Gini_in_values', 'Gini_out_values'], [date_store, Gini_in_values, Gini_out_values])
@@ -71,14 +74,16 @@ def main():
     df_n_of_nodes.to_csv(PATH_N_NODES+'Figure12.csv', index=False)
     df_modularity.to_csv(PATH_MODULARITY+'Figure13.csv', index=False)
     
-    #In this dataframe we store the dates (date_store) and the age of the users in the case of the in- and out- distributions.
-    #The meaning of age of activity is explained in the corresponding function.
+#In this dataframe we store the dates (date_store) and the age of the users in the case
+#of the in- and out- distributions. The meaning of age of activity is explained in the 
+#corresponding function.
  
     df_age = create_df(['date_store', 'nodes_age_in', 'nodes_age_out'],[date_store, nodes_age_in, nodes_age_out])
     df_age.to_csv(PATH_AGE+'Figure14.csv', index=False)
     
-    #To evaluate the behaviour of the retweets for the top-scoring nodes we need 4 lists, the list of nodes in the order we read
-    #them, the list containing the community to which each node belongs, the lists with the corresponding in- and out- degree.
+#To evaluate the behaviour of the retweets for the top-scoring nodes we need 4 lists,
+#the list of nodes in the order we read them, the list containing the community to which 
+#each node belongs, the lists with the corresponding in- and out- degree.
   
     for Gvac in Gvac_days:
         Gvac_subgraph, Gvac_A, Gvac_B, group_A, group_B = assign_communities(Gvac, com_of_user)
@@ -87,12 +92,13 @@ def main():
     in_degree = [Gvac_subgraph.in_degree(node) for node in nodes]
     out_degree = [Gvac_subgraph.out_degree(node) for node in nodes]
     
-    #Dataframe where we put the 4 lists and we consider the top-users in terms of the total degree, so we define another column.
+#Dataframe where we put the 4 lists and we consider the top-users in terms of the total degree,
+#so we define another column.
  
     df_users = create_df(['user', 'community', 'in-degree', 'out-degree'],[nodes, community, in_degree, out_degree])
     df_users['total-degree']=df_users['in-degree']+df_users['out-degree']
     
-    #We define the top users of group A and group B on the basis of the total-degree (we are taking the 1%).
+#We define the top users of group A and group B on the basis of the total-degree (we are taking the 1%).
     
     df_topA = filter_top_users(df_users, 'A', top_user_fraction)
     df_topB = filter_top_users(df_users, 'B', top_user_fraction)
@@ -106,14 +112,15 @@ def main():
     df_tweets_B = n_tweets_over_time_selected_community(df, df_topB, 'NtweetsGroupB')
     df_tweets = n_tweets_over_time(df)
     
-    #To join together the three dataframes we use an outer join: in the left join we took as reference only the dataframe on the
-    #'left part' and we took into account only the indexes of the dataframe on the 'left part'. With the outer join we consider
-    #the indexes of all the dataframes.
+#To join together the three dataframes we use an outer join: in the left join we took as reference
+#only the dataframe on the 'left part' and we took into account only the indexes of the dataframe on 
+#the 'left part'. With the outer join we consider the indexes of all the dataframes.
     
     df_final = df_tweets_B.join(df_tweets_A,how='outer').join(df_tweets,how='outer').fillna(0) #Fill NA/NaN values with 0 
     
-    #Fraction of retweets with respect to the total number of retweets in order to plot its behaviour over time: we create other
-    #2 columns, the fraction of retweets in the case of group A and in the case of group B.
+#Fraction of retweets with respect to the total number of retweets in order to plot its behaviour over
+#time: we create other 2 columns, the fraction of retweets in the case of group A and 
+#in the case of group B.
     
     df_final['fractionTweetsGroupB'] = df_final['NtweetsGroupB']/df_final['Ntweets']
     df_final['fractionTweetsGroupA'] = df_final['NtweetsGroupA']/df_final['Ntweets']

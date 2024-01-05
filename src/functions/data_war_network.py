@@ -56,8 +56,8 @@ def main():
         com_of_usersWar[node]=com_of_user[node]    
     
    
-    #We create 6 lists to store the in- out-degree of the nodes belonging to the whole network, group A and B and we save them in
-    #a corresponding file.
+    #We create 6 lists to store the in- out-degree of the nodes belonging to
+    #the whole network, group A and B and we save them in a corresponding file.
     
     in_degree_original, out_degree_original = degree_distributions(Gvac)
     in_degree_group_A, out_degree_group_A = degree_distributions(Gvac_A)
@@ -71,14 +71,16 @@ def main():
     df_degree_group_A.to_csv(PATH_DEGREE_WAR+"DegreeGroupA.csv", index = False)
     df_degree_group_B.to_csv(PATH_DEGREE_WAR+"DegreeGroupB.csv", index = False)
     
-    #We call compute the nodes of group A and B belonging to the first and second strong (weak) connected components, the first
-    #strong (weak) connected component G0 and the second strong (weak) connected component G1.
+    #We call compute the nodes of group A and B belonging to the first and second 
+    #strong (weak) connected components, the first strong (weak) connected component
+    #G0 and the second strong (weak) connected component G1.
     
     group_A_G0, group_B_G0, group_A_G1, group_B_G1, G0, G1 = compute_connected_component(Gvac_subgraph,group_A,group_B, 'strong')
     (group_A_G0_weak, group_B_G0_weak, group_A_G1_weak, group_B_G1_weak, G0_weak, G1_weak)= compute_connected_component(Gvac_subgraph,group_A,group_B, 'weak')
     betweenness, betweenness_weak, in_degree_G0, out_degree_G0, in_degree_G0_weak, out_degree_G0_weak = compute_betweeness(G0, G0_weak)
     
-    #In order to plot betweeness vs in-degree and betweeness vs out-degree we have to sort the data in the same order.
+    #In order to plot betweeness vs in-degree and betweeness vs out-degree we have 
+    #to sort the data in the same order.
     
     nodes, in_degreeG0, out_degreeG0, betweenessG0 = sort_data(G0, betweenness)
     nodesW, in_degreeG0_weak, out_degreeG0_weak, betweenessG0_weak = sort_data(G0_weak, betweenness_weak)
@@ -113,7 +115,8 @@ def main():
     df_clust_indegree.to_csv(DATA_CLUSTERING+'ClusteringInDegree.csv', index=False)
     df_clust_outdegree.to_csv(DATA_CLUSTERING+'ClusteringOutDegree.csv',index=False)
     
-    #Here we read the file with all the retweets and we store it in df and we get the most frequently words used.
+    #Here we read the file with all the retweets and we store it in df and 
+    #we get the most frequently words used.
     
     df = pd.read_pickle(PATH_WAR, compression='gzip')
     

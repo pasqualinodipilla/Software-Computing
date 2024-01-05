@@ -28,7 +28,8 @@ DIR_FILES = f'{PATH_TO_DATA}edgelist_days/'
 
 SEED = 123
 top_user_fraction = 0.01
-min_rt=1 #Set the minimum the weight threshold for edges to be considered (1 is the minimum -> keep edges with at least 1 retweet) 
+min_rt=1 #Set the minimum the weight threshold for edges to be considered
+#(1 is the minimum -> keep edges with at least 1 retweet) 
 n_rand = 10 #number of randomization
 k_betweeness_strong = 500
 k_betweeness_weak = 60
